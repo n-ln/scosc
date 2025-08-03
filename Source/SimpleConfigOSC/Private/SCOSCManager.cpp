@@ -30,7 +30,7 @@ void ASCOSCManager::BeginPlay()
 	UE_LOG(LogTemp, Warning, TEXT("Current status: %s"), OSCServer->IsActive() ? TEXT("Active") : TEXT("Inactive"));
 	UE_LOG(LogTemp, Warning, TEXT("OSC Server listening on %s:%d"), *OSCServer->GetIpAddress(false), OSCServer->GetPort());
 
-	// Bine to OnOscMessageReceived
+	// Bind to OnOscMessageReceived
 	OSCServer->OnOscMessageReceived.AddDynamic(this, &ASCOSCManager::HandleReceivedMessage);
 }
 

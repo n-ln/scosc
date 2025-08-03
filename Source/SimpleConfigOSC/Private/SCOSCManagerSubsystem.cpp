@@ -5,6 +5,7 @@
 
 #include "OSCServer.h"
 #include "OSCClient.h"
+#include "SWarningOrErrorBox.h"
 
 void USCOSCManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -14,7 +15,8 @@ void USCOSCManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	bIsListening = false;
 
 	//Create OSC Server
-	OSCServer = NewObject<UOSCServer>();
+	OSCServer = NewObject<UOSCServer>(this, FName("OSCServer"));
+	//UE_LOG(LogTemp, Warning, TEXT("Outer object: %s"), *OSCServer->GetOuter()->GetName());
 	OSCServer->SetAddress(ListenAddress, ListenPort);
 	SetServerPort(ListenPort);
 	StartServer();

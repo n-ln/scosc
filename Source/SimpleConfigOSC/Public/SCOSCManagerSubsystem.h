@@ -46,7 +46,10 @@ public:
 	// End OSC server functionality
 
 private:
+	UPROPERTY()
 	UOSCServer* OSCServer;
+	
+	UPROPERTY()
 	UOSCClient* OSCClient;
 
 	FString ListenAddress = TEXT("0.0.0.0");

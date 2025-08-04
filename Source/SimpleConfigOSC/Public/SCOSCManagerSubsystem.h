@@ -52,9 +52,12 @@ public:
 
 	// Begin OSC client functionality
 	UFUNCTION()
-	UOSCClient* CreateClient(FName ClientName, FString IPAddress, uint16 Port);
+	UOSCClient* CreateClient(FName ClientName, const FString& IPAddress, uint16 Port);
 	UFUNCTION()
 	void DestroyClient(FName ClientName);
+
+	UFUNCTION()
+	void SetClientDestination(FName ClientName, const FString& IPAddress, uint16 Port);
 
 	// TODO support different data types
 	// For now, suppose float array

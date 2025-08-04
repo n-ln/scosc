@@ -4,8 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "SCOSCManagerSubsystem.generated.h"
 
+#include "OSCMessage.h"
+
+#include "SCOSCManagerSubsystem.generated.h"
+ 
 class UOSCServer;
 class UOSCClient;
 
@@ -28,11 +31,13 @@ public:
 	}
 	// End UGameInstanceSubsystem Interface
 
-	//TODO: Move OSC Manager implementation
 	// Begin OSC server functionality
+	UFUNCTION()
 	void StartServer();
+	UFUNCTION()
 	void StopServer();
 
+	UFUNCTION()
 	void SetServerPort(uint16 Port);
 
 	UFUNCTION()
@@ -45,18 +50,29 @@ public:
 	void UnregisterListener(UObject* Object, TArray<FString> ListenAddresses);
 	// End OSC server functionality
 
+	// Begin OSC client functionality
+	UFUNCTION()
+	UOSCClient* CreateClient(FName ClientName, FString IPAddress, uint16 Port);
+	UFUNCTION()
+	void DestroyClient(FName ClientName);
+
+	// TODO support different data types
+	// For now, suppose float array
+	UFUNCTION(BlueprintCallable)
+	void SendOSCMessage(FName ClientName, const FString& Address, const TArray<float>& Message);
+
 private:
 	UPROPERTY()
 	UOSCServer* OSCServer;
-	
+
 	UPROPERTY()
-	UOSCClient* OSCClient;
+	TMap<FName, UOSCClient*> OSCClients;
 
 	FString ListenAddress = TEXT("0.0.0.0");
 	uint16 ListenPort = 38000;
 
-	FString TargetAddress;
-	uint16 TargetPort;
+	FString TargetAddress = TEXT("127.0.0.1");
+	uint16 TargetPort = 39000;
 
 	bool bIsListening;
 

@@ -5,7 +5,8 @@
 
 #include "OSCServer.h"
 #include "OSCClient.h"
-#include "SWarningOrErrorBox.h"
+#include "OSCMessage.h"
+#include "OSCManager.h"
 
 void USCOSCManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -24,14 +25,25 @@ void USCOSCManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	// Bind to OnOscMessageReceived
 	OSCServer->OnOscMessageReceived.AddDynamic(this, &USCOSCManagerSubsystem::HandleReceivedMessage);
 
+	// Create OSC Client
+	// TODO* Multi client support
+	OSCClients.Add(FName("OSCClient"), CreateClient(FName("OSCClient"), TargetAddress, TargetPort));
+
 	UE_LOG(LogTemp, Warning, TEXT("OSC Manager Subsystem initialized"));
 
 }
 
 void USCOSCManagerSubsystem::Deinitialize()
 {
-	//TODO: Stop OSC server&client
 	StopServer();
+	// Destroy all OSC Clients
+	for (const TPair<FName, UOSCClient*>& ClientPair : OSCClients)
+	{
+		if (ClientPair.Value)
+		{
+			DestroyClient(ClientPair.Key);
+		}
+	}
 
 	UE_LOG(LogTemp, Warning, TEXT("OSC Manager Subsystem deinitialized"));
 	
@@ -97,4 +109,59 @@ void USCOSCManagerSubsystem::UnregisterListener(UObject* Object, TArray<FString>
 	UE_LOG(LogTemp, Warning, TEXT("Unregistering listener for object: %s"), *Object->GetName());
 }
 
+UOSCClient* USCOSCManagerSubsystem::CreateClient(FName ClientName, FString IPAddress, uint16 Port)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Creating OSC Client: %s at %s:%d"), *ClientName.ToString(), *IPAddress, Port);
+
+	//Create OSC Client
+	UOSCClient* NewOSCClient = NewObject<UOSCClient>(this, ClientName);
+	NewOSCClient->Connect();
+	NewOSCClient->SetSendIPAddress(IPAddress, Port);
+
+	if (!NewOSCClient->IsActive())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to create OSC Client: %s at %s:%d"), *ClientName.ToString(), *IPAddress, Port);
+		return nullptr;
+	}
+
+	return NewOSCClient;
+}
+
+void USCOSCManagerSubsystem::DestroyClient(FName ClientName)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Destroying OSC Client: %s"), *ClientName.ToString());
+
+	UOSCClient* Client = OSCClients.FindRef(ClientName);
+	if (!Client)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OSC Client %s not found"), *ClientName.ToString());
+		return;
+	}
+
+	// TODO: Need to destroy the client?
+}
+
+void USCOSCManagerSubsystem::SendOSCMessage(FName ClientName, const FString& Address, const TArray<float>& Message)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Sending OSC Message from Client: %s"), *ClientName.ToString());
+
+	UOSCClient* Client = OSCClients.FindRef(ClientName);
+	if (!Client)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OSC Client %s not found"), *ClientName.ToString());
+		return;
+	}
+
+	FOSCMessage OSCMessage;
+	OSCMessage.SetAddress(FOSCAddress(Address));
+
+	for (const float& Value : Message)
+	{
+		UOSCManager::AddFloat(OSCMessage, Value);
+	}
+
+	Client->SendOSCMessage(OSCMessage);
+	UE_LOG(LogTemp, Warning, TEXT("OSC Message sent from Client: %s"), *ClientName.ToString());
+	
+}
 

@@ -12,6 +12,16 @@
 class UOSCServer;
 class UOSCClient;
 
+
+UENUM(BlueprintType)
+enum class EOSCDataType : uint8
+{
+	Int32 UMETA(DisplayName = "Integers"),
+	Float32 UMETA(DisplayName = "Floats"),
+	String UMETA(DisplayName = "Strings"),
+	Blob UMETA(DisplayName = "Blobs")
+};
+
 /**
  * 
  */
@@ -43,11 +53,11 @@ public:
 	UFUNCTION()
 	void HandleReceivedMessage(const FOSCMessage& Message, const FString& IPAddress, const int32 Port);
 
-	//TODO Register Listener
+	// Register Listener
 	UFUNCTION(BlueprintCallable)
-	void RegisterListener(UObject* Object, TArray<FString> ListenAddresses);
+	void RegisterListener(UObject* Object, const TArray<FString>& ListenAddresses);
 	UFUNCTION(BlueprintCallable)
-	void UnregisterListener(UObject* Object, TArray<FString> ListenAddresses);
+	void UnregisterListener(UObject* Object, const TArray<FString>& ListenAddresses);
 	// End OSC server functionality
 
 	// Begin OSC client functionality
@@ -79,6 +89,9 @@ private:
 
 	bool bIsListening;
 
-	//TODO Registered Listeners Map
+	// Registered listeners
+	TMap<FString, TArray<UObject*>> OSCListeners;
+	// OSC data types of each address
+	//TMap<FString, EOSCDataType> OSCDataTypes;
 	
 };

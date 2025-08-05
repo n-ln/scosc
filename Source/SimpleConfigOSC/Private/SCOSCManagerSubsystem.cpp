@@ -97,16 +97,38 @@ void USCOSCManagerSubsystem::HandleReceivedMessage(const FOSCMessage& Message, c
 	UE_LOG(LogTemp, Warning, TEXT("Received OSC Message: %s from %s:%d"), *Message.GetAddress().GetFullPath(), *IPAddress, Port);
 }
 
-void USCOSCManagerSubsystem::RegisterListener(UObject* Object, TArray<FString> ListenAddresses)
+void USCOSCManagerSubsystem::RegisterListener(UObject* Object, const TArray<FString>& ListenAddresses)
 {
-	//Log object name
-	UE_LOG(LogTemp, Warning, TEXT("Registering listener for object: %s"), *Object->GetName());
+	for (const FString& Address : ListenAddresses)
+	{
+		if (!OSCListeners.Contains(Address))
+		{
+			OSCListeners.Add(Address, TArray<UObject*>());
+		}
+		OSCListeners[Address].AddUnique(Object);
+
+		UE_LOG(LogTemp, Warning, TEXT("Registering listener %s for address: %s"), *Object->GetName(), *Address);
+	}
 }
 
-void USCOSCManagerSubsystem::UnregisterListener(UObject* Object, TArray<FString> ListenAddresses)
+void USCOSCManagerSubsystem::UnregisterListener(UObject* Object, const TArray<FString>& ListenAddresses)
 {
-	//Log object name
-	UE_LOG(LogTemp, Warning, TEXT("Unregistering listener for object: %s"), *Object->GetName());
+	for (const FString& Address : ListenAddresses)
+	{
+		if (!OSCListeners.Contains(Address))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No listeners registered to address: %s"), *Address);
+			continue;
+		}
+		if (!OSCListeners[Address].Contains(Object))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("%s not registered for address: %s"), *Object->GetName(), *Address);
+			continue;
+		}
+
+		OSCListeners[Address].Remove(Object);
+		UE_LOG(LogTemp, Warning, TEXT("Unregistered listener %s for address: %s"), *Object->GetName(), *Address);
+	}
 }
 
 UOSCClient* USCOSCManagerSubsystem::CreateClient(const FName ClientName, const FString& IPAddress, const uint16 Port)

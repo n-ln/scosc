@@ -105,7 +105,7 @@ void USCOSCManagerSubsystem::RegisterListener(UObject* Object, const TArray<FStr
 		{
 			OSCListeners.Add(Address, TArray<UObject*>());
 		}
-		OSCListeners[Address].AddUnique(Object);
+		OSCListeners.Find(Address)->AddUnique(Object);
 
 		UE_LOG(LogTemp, Warning, TEXT("Registering listener %s for address: %s"), *Object->GetName(), *Address);
 	}
@@ -120,14 +120,39 @@ void USCOSCManagerSubsystem::UnregisterListener(UObject* Object, const TArray<FS
 			UE_LOG(LogTemp, Warning, TEXT("No listeners registered to address: %s"), *Address);
 			continue;
 		}
-		if (!OSCListeners[Address].Contains(Object))
+		if (!OSCListeners.Find(Address)->Contains(Object))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("%s not registered for address: %s"), *Object->GetName(), *Address);
 			continue;
 		}
 
-		OSCListeners[Address].Remove(Object);
+		OSCListeners.Find(Address)->Remove(Object);
 		UE_LOG(LogTemp, Warning, TEXT("Unregistered listener %s for address: %s"), *Object->GetName(), *Address);
+	}
+}
+
+TArray<UObject*> USCOSCManagerSubsystem::GetAllListenersOfAddress(const FString& Address) const
+{
+	if (const TArray<UObject*>* Listeners = OSCListeners.Find(Address))
+	{
+		return *Listeners;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No listener registered to address: %s"), *Address);
+		return TArray<UObject*>();
+	}
+}
+
+void USCOSCManagerSubsystem::UnregisterAllListenersOfAddress(const FString& Address)
+{
+	if (OSCListeners.Contains(Address))
+	{
+		OSCListeners.Remove(Address);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No listener to unregister for address: %s"), *Address);
 	}
 }
 

@@ -58,6 +58,10 @@ public:
 	void RegisterListener(UObject* Object, const TArray<FString>& ListenAddresses);
 	UFUNCTION(BlueprintCallable)
 	void UnregisterListener(UObject* Object, const TArray<FString>& ListenAddresses);
+	UFUNCTION()
+	TArray<UObject*> GetAllListenersOfAddress(const FString& Address) const;
+	UFUNCTION()
+	void UnregisterAllListenersOfAddress(const FString& Address);
 	// End OSC server functionality
 
 	// Begin OSC client functionality
@@ -73,6 +77,7 @@ public:
 	// For now, suppose float array
 	UFUNCTION(BlueprintCallable)
 	void SendOSCMessage(FName ClientName, const FString& Address, const TArray<float>& Message);
+	// End OSC client functionality
 
 private:
 	UPROPERTY()

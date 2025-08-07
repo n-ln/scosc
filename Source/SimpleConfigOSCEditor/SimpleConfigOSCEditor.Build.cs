@@ -19,7 +19,9 @@ public class SimpleConfigOSCEditor : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore"
+                "SlateCore",
+                "UnrealEd",
+                "ToolMenus",
             }
         );
     }

@@ -39,7 +39,52 @@ void FSimpleConfigOSCEditorModule::OnMenuButtonClicked()
 TSharedRef<SDockTab> FSimpleConfigOSCEditorModule::OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs)
 {
 	// Create plugin editor tab
-	return SNew(SDockTab);
+	return SNew(SDockTab)
+		//.TabRole(ETabRole::NomadTab)
+		//.Label(LOCTEXT("DockableTabTitle", "SCOSC Editor"))
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(4.f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("EditorTitle", "SOCSC Editor"))
+				]
+			]
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(4.f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("EditorAddrList", "OSC Address List"))
+				]
+				+ SHorizontalBox::Slot()
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("EditorDetail", "OSC Details"))
+				]
+			]
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(4.f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("EditorStatus", "OSC Status"))
+				]
+			]
+		];
 }
 
 #undef LOCTEXT_NAMESPACE

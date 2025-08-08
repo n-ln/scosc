@@ -19,7 +19,9 @@ void FSimpleConfigOSCEditorModule::StartupModule()
 
 void FSimpleConfigOSCEditorModule::ShutdownModule()
 {
-    // Unregister menus
+    // Unregister menu
+	UToolMenus::UnRegisterStartupCallback(this);
+	UToolMenus::UnregisterOwner(this);
 
 	// Unregister tab spawner
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(SCOSCEditorTabName);

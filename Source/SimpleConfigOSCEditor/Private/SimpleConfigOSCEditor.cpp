@@ -70,12 +70,20 @@ TSharedRef<SDockTab> FSimpleConfigOSCEditorModule::OnSpawnPluginTab(const FSpawn
 {
 	// Create plugin editor tab
 	return SNew(SDockTab)
-		//.TabRole(ETabRole::NomadTab)
-		//.Label(LOCTEXT("DockableTabTitle", "SCOSC Editor"))
+	//.TabRole(ETabRole::NomadTab)
+	//.Label(LOCTEXT("DockableTabTitle", "SCOSC Editor"))
+	[
+		SNew(SBorder)
+		.HAlign(HAlign_Fill)
+		.VAlign(VAlign_Fill)
+		.BorderImage(FStyleDefaults::GetNoBrush())
 		[
 			SNew(SVerticalBox)
+			// Title Bar
 			+ SVerticalBox::Slot()
-			.AutoHeight()
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Fill)
+			.FillHeight(1.f)
 			.Padding(4.f)
 			[
 				SNew(SHorizontalBox)
@@ -85,26 +93,78 @@ TSharedRef<SDockTab> FSimpleConfigOSCEditorModule::OnSpawnPluginTab(const FSpawn
 				[
 					SNew(STextBlock)
 					.Text(LOCTEXT("EditorTitle", "SOCSC Editor"))
+					// Set style for title text
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 14))
 				]
 			]
+			// OSC Server
 			+ SVerticalBox::Slot()
-			.AutoHeight()
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Fill)
+			.FillHeight(4.f)
 			.Padding(4.f)
 			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.MaxHeight(40.f)
 				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("EditorAddrList", "OSC Address List"))
+					SNew(SButton)
+					.Text(FText::FromString("Toggle OSC Server"))
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
 				]
-				+ SHorizontalBox::Slot()
+				+ SVerticalBox::Slot()
+				//.FillHeight()
 				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("EditorDetail", "OSC Details"))
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("EditorAddrList", "OSC Address List"))
+					]
+					+ SHorizontalBox::Slot()
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("EditorServerDetail", "OSC Server Details"))
+					]
 				]
 			]
+			// OSC Client
 			+ SVerticalBox::Slot()
-			.AutoHeight()
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Fill)
+			.FillHeight(4.f)
+			.Padding(4.f)
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.MaxHeight(40.f)
+				[
+					SNew(SButton)
+					.Text(FText::FromString("Toggle OSC Client"))
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+				]
+				+ SVerticalBox::Slot()
+				[
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("EditorDestList", "OSC Destination List"))
+					]
+					+ SHorizontalBox::Slot()
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("EditorClientDetail", "OSC Client Details"))
+					]
+				]
+			]
+			// OSC Status
+			+ SVerticalBox::Slot()
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Fill)
+			.FillHeight(1.f)
 			.Padding(4.f)
 			[
 				SNew(SHorizontalBox)
@@ -114,7 +174,8 @@ TSharedRef<SDockTab> FSimpleConfigOSCEditorModule::OnSpawnPluginTab(const FSpawn
 					.Text(LOCTEXT("EditorStatus", "OSC Status"))
 				]
 			]
-		];
+		]
+	];
 }
 
 #undef LOCTEXT_NAMESPACE

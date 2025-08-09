@@ -69,8 +69,9 @@ void FSimpleConfigOSCEditorModule::OnMenuButtonClicked()
 
 TSharedRef<SDockTab> FSimpleConfigOSCEditorModule::OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs) 
 {
-	// Create plugin editor tab with new widget
+	// Create plugin editor tab with editor widget
 	return SNew(SDockTab)
+	.TabRole(NomadTab)
 	[
 		SNew(SSCOSCEditorWidget)
 		.OSCAddressList(TSharedPtr<TArray<TSharedPtr<FString>>>(&OSCAddressList, [](TArray<TSharedPtr<FString>>*){}))

@@ -7,6 +7,7 @@
 class SSCOSCEditorWidget : public SCompoundWidget
 {
 public:
+	// Slate arguments
 	SLATE_BEGIN_ARGS(SSCOSCEditorWidget)
 		{}
 		SLATE_ARGUMENT(TSharedPtr<TArray<TSharedPtr<FString>>>, OSCAddressList)

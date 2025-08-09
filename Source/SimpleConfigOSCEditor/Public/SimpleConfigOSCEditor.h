@@ -14,4 +14,8 @@ private:
     void OnMenuButtonClicked();
 
     TSharedRef<SDockTab> OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs);
+
+    // List data sources
+    TArray<TSharedPtr<FString>> OSCAddressList;
+    TArray<TSharedPtr<FString>> OSCDestinationList;
 };

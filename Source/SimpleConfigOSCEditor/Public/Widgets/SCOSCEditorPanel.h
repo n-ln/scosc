@@ -15,6 +15,7 @@ public:
 		SLATE_ARGUMENT(FText, ListTitle)
 		SLATE_ARGUMENT(FText, DetailsTitle)
 		SLATE_ARGUMENT(TSharedPtr<TArray<TSharedPtr<FString>>>, ListSource)
+		SLATE_NAMED_SLOT(FArguments, ToolBar)
 		SLATE_NAMED_SLOT(FArguments, DetailsContent)
 	SLATE_END_ARGS()
 

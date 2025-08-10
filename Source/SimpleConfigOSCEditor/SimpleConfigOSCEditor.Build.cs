@@ -24,6 +24,7 @@ public class SimpleConfigOSCEditor : ModuleRules
                 "ToolMenus",
                 "InputCore", 
                 "EditorStyle",
+                "ToolWidgets"
             }
         );
     }

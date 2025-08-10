@@ -32,9 +32,13 @@ void SSCOSCEditorPanel::Construct(const FArguments& InArgs)
 				.AutoHeight()
 				.Padding(0.f, 0.f, 0.f, 4.f)
 				[
+					/*
 					SNew(STextBlock)
 					.Text(ListTitle)
 					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+					*/
+					// Tool bar content
+					InArgs._ToolBar.Widget
 				]
 				+ SVerticalBox::Slot()
 				.FillHeight(1.f)

@@ -22,7 +22,8 @@ public class SimpleConfigOSCEditor : ModuleRules
                 "SlateCore",
                 "UnrealEd",
                 "ToolMenus",
-                "InputCore",
+                "InputCore", 
+                "EditorStyle",
             }
         );
     }

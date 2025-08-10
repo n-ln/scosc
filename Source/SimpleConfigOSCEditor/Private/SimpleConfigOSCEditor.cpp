@@ -71,6 +71,7 @@ TSharedRef<SDockTab> FSimpleConfigOSCEditorModule::OnSpawnPluginTab(const FSpawn
 {
 	// Create plugin editor tab with editor widget
 	return SNew(SDockTab)
+	.Label(LOCTEXT("DockableTabTitle", "SCOSC Editor"))
 	.TabRole(NomadTab)
 	[
 		SNew(SSCOSCEditorWidget)

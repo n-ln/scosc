@@ -1,3 +1,5 @@
+#include "./Widgets/SCOSCEditorPanel.h"
+
 #include "Widgets/Layout/SSplitter.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/SBoxPanel.h"
@@ -6,7 +8,6 @@
 #include "Styling/CoreStyle.h"
 #include "Styling/StyleDefaults.h"
 
-#include "./Widgets/SCOSCEditorPanel.h"
 
 void SSCOSCEditorPanel::Construct(const FArguments& InArgs)
 {
@@ -20,7 +21,7 @@ void SSCOSCEditorPanel::Construct(const FArguments& InArgs)
 		SNew(SSplitter)
 		.Orientation(Orient_Horizontal)
 		+ SSplitter::Slot()
-		.Value(0.25f)
+		.Value(0.35f)
 		[
 			SNew(SBorder)
 			.BorderImage(FStyleDefaults::GetNoBrush())
@@ -45,7 +46,7 @@ void SSCOSCEditorPanel::Construct(const FArguments& InArgs)
 			]
 		]
 		+ SSplitter::Slot()
-		.Value(0.75f)
+		.Value(0.65f)
 		[
 			SNew(SBorder)
 			.BorderImage(FStyleDefaults::GetNoBrush())

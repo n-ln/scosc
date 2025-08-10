@@ -8,4 +8,14 @@ class FSimpleConfigOSCEditorModule : public IModuleInterface
 public:
     virtual void StartupModule() override;
     virtual void ShutdownModule() override;
+
+private:
+    void RegisterMenus();
+    void OnMenuButtonClicked();
+
+    TSharedRef<SDockTab> OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs);
+
+    // List data sources
+    TArray<TSharedPtr<FString>> OSCAddressList;
+    TArray<TSharedPtr<FString>> OSCDestinationList;
 };

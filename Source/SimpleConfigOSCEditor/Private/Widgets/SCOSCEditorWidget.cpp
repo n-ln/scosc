@@ -16,6 +16,7 @@
 #include "Styling/StyleDefaults.h"
 
 #include "EditorFontGlyphs.h"
+#include "SCOSCSettings.h"
 #include "./Widgets/SCOSCEditorPanel.h"
 
 #define LOCTEXT_NAMESPACE "SSCOSCEditorWidget"
@@ -332,35 +333,68 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 
 ECheckBoxState SSCOSCEditorWidget::GetServerMainCheckState() const
 {
-	return bEnableServerMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	//return bEnableServerMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	return GetDefault<USCOSCServerSettings>()->ServerParameters.bEnableServerMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
 void SSCOSCEditorWidget::ToggleServerMain(ECheckBoxState CheckState)
 {
-	// Placeholder toggling OSC Server on/off
-	bEnableServerMain = !bEnableServerMain;
+	USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>();
+	
+	// Simply flip the bool without check for now
+	if (ServerSettings->ServerParameters.bEnableServerMain == true)
+	{
+		ServerSettings->ServerParameters.bEnableServerMain = false;
+	}
+	else
+	{
+		ServerSettings->ServerParameters.bEnableServerMain = true;
+	}
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetClientMainCheckState() const
 {
-	return bEnableClientMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	//return bEnableClientMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	return GetDefault<USCOSCClientSettings>()->ClientParameters.bEnableClientMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
 void SSCOSCEditorWidget::ToggleClientMain(ECheckBoxState CheckState)
 {
-	// Placeholder toggling OSC Client on/off
-	bEnableClientMain = !bEnableClientMain;
+	USCOSCClientSettings* ClientSettings = GetMutableDefault<USCOSCClientSettings>();
+	
+	// Simply flip the bool without check for now
+	if (ClientSettings->ClientParameters.bEnableClientMain == true)
+	{
+		ClientSettings->ClientParameters.bEnableClientMain = false;
+	}
+	else
+	{
+		ClientSettings->ClientParameters.bEnableClientMain = true;
+	}
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetSettingCheckState() const
 {
-	return bShowUserSettings ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	//return bShowUserSettings ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	return GetDefault<USCOSCProjectSettings>()->ProjectParameters.bShowUserSettings ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
 void SSCOSCEditorWidget::ToggleSetting(ECheckBoxState CheckState)
 {
-	// Placeholder for toggling settings panel
-	bShowUserSettings = !bShowUserSettings;
+	USCOSCProjectSettings* ProjectSettings = GetMutableDefault<USCOSCProjectSettings>();
+	
+	// Simply flip the bool without check for now
+	if (ProjectSettings->ProjectParameters.bShowUserSettings == true)
+	{
+		ProjectSettings->ProjectParameters.bShowUserSettings = false;
+	}
+	else
+	{
+		ProjectSettings->ProjectParameters.bShowUserSettings = true;
+	}
+	
+	// TODO: Save the settings
+	//ProjectSettings->SaveConfig();
 }
 
 FReply SSCOSCEditorWidget::OnAddOSCSourceAddress()

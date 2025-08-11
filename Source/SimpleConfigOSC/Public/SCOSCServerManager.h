@@ -6,27 +6,18 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 
 #include "OSCMessage.h"
+#include "SCOSCTypes.h"
 
-#include "SCOSCManagerSubsystem.generated.h"
- 
+#include "SCOSCServerManager.generated.h"
+
 class UOSCServer;
-class UOSCClient;
-
-
-UENUM(BlueprintType)
-enum class EOSCDataType : uint8
-{
-	Int32 UMETA(DisplayName = "Integers"),
-	Float32 UMETA(DisplayName = "Floats"),
-	String UMETA(DisplayName = "Strings"),
-	Blob UMETA(DisplayName = "Blobs")
-};
 
 /**
  * 
  */
+
 UCLASS()
-class SIMPLECONFIGOSC_API USCOSCManagerSubsystem : public UGameInstanceSubsystem
+class SIMPLECONFIGOSC_API USCOSCServerManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
@@ -64,33 +55,12 @@ public:
 	void UnregisterAllListenersOfAddress(const FString& Address);
 	// End OSC server functionality
 
-	// Begin OSC client functionality
-	UFUNCTION()
-	UOSCClient* CreateClient(FName ClientName, const FString& IPAddress, uint16 Port);
-	UFUNCTION()
-	void DestroyClient(FName ClientName);
-
-	UFUNCTION()
-	void SetClientDestination(FName ClientName, const FString& IPAddress, uint16 Port);
-
-	// TODO support different data types
-	// For now, suppose float array
-	UFUNCTION(BlueprintCallable)
-	void SendOSCMessage(FName ClientName, const FString& Address, const TArray<float>& Message);
-	// End OSC client functionality
-
 private:
 	UPROPERTY()
 	UOSCServer* OSCServer;
-
-	UPROPERTY()
-	TMap<FName, UOSCClient*> OSCClients;
-
+	
 	FString ListenAddress = TEXT("0.0.0.0");
 	uint16 ListenPort = 38000;
-
-	FString TargetAddress = TEXT("127.0.0.1");
-	uint16 TargetPort = 39000;
 
 	bool bIsListening;
 
@@ -98,5 +68,4 @@ private:
 	TMap<FString, TArray<UObject*>> OSCListeners;
 	// OSC data types of each address
 	//TMap<FString, EOSCDataType> OSCDataTypes;
-	
 };

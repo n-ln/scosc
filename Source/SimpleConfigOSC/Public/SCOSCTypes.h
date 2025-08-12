@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "SCOSCTypes.generated.h"
 
+class UOSCServer;
 /**
  * 
  */
@@ -17,3 +18,28 @@ enum class EOSCDataType : uint8
 	String UMETA(DisplayName = "Strings"),
 	Blob UMETA(DisplayName = "Blobs")
 };
+
+USTRUCT()
+struct FSCOSCServerConfig
+{
+	GENERATED_BODY()
+	
+	UPROPERTY()
+	FString IPAddress = "";
+	UPROPERTY()
+	uint16 Port = 0;
+	UPROPERTY()
+	bool bEnableByDefault = false;
+};
+
+USTRUCT()
+struct FSCOSCServerRuntimeStatus
+{
+	GENERATED_BODY()
+	
+	UPROPERTY()
+	UOSCServer* OSCServer = nullptr;
+	UPROPERTY()
+	bool bIsListening = false;
+};
+

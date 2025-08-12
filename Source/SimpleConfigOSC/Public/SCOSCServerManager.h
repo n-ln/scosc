@@ -7,6 +7,7 @@
 
 #include "OSCMessage.h"
 #include "SCOSCTypes.h"
+#include "SCOSCSettings.h"
 
 #include "SCOSCServerManager.generated.h"
 
@@ -34,12 +35,15 @@ public:
 
 	// Begin OSC server functionality
 	UFUNCTION()
-	void StartServer();
+	UOSCServer* CreateServer(FName ServerName);
 	UFUNCTION()
-	void StopServer();
-
+	UOSCServer* GetOSCServer(FName ServerName) const;
 	UFUNCTION()
-	void SetServerPort(uint16 Port);
+	void StartServer(FName ServerName);
+	UFUNCTION()
+	void StopServer(FName ServerName);
+	UFUNCTION()
+	void SetServerEndpoint(FName ServerName, const FString& Address, uint16 Port);
 
 	UFUNCTION()
 	void HandleReceivedMessage(const FOSCMessage& Message, const FString& IPAddress, const int32 Port);
@@ -57,13 +61,10 @@ public:
 
 private:
 	UPROPERTY()
-	UOSCServer* OSCServer;
+	TMap<FName, FSCOSCServerRuntimeStatus> OSCServers;
+
+	USCOSCServerSettings* ServerSettings;
 	
-	FString ListenAddress = TEXT("0.0.0.0");
-	uint16 ListenPort = 38000;
-
-	bool bIsListening;
-
 	// Registered listeners
 	TMap<FString, TArray<UObject*>> OSCListeners;
 	// OSC data types of each address

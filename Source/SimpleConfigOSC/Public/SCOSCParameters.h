@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SCOSCTypes.h"
 #include "UObject/Object.h"
 #include "SCOSCParameters.generated.h"
 
@@ -41,6 +42,8 @@ struct FSCOSCServerParameters
 
 	UPROPERTY(Config)
 	bool bEnableServerMain;
+	UPROPERTY(Config)
+	TMap<FName, FSCOSCServerConfig> ServerConfigs;
 };
 
 USTRUCT(BlueprintType)

@@ -16,6 +16,7 @@
 #include "Styling/StyleDefaults.h"
 
 #include "EditorFontGlyphs.h"
+#include "SCOSCServerManager.h"
 #include "SCOSCSettings.h"
 #include "./Widgets/SCOSCEditorPanel.h"
 
@@ -340,16 +341,20 @@ ECheckBoxState SSCOSCEditorWidget::GetServerMainCheckState() const
 void SSCOSCEditorWidget::ToggleServerMain(ECheckBoxState CheckState)
 {
 	USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>();
+
+	ServerSettings->ServerParameters.bEnableServerMain = !ServerSettings->ServerParameters.bEnableServerMain;
 	
-	// Simply flip the bool without check for now
-	if (ServerSettings->ServerParameters.bEnableServerMain == true)
+	if (GEditor->GetPIEWorldContext())
 	{
-		ServerSettings->ServerParameters.bEnableServerMain = false;
+		UE_LOG(LogTemp, Log, TEXT("PIE"));
+
+		GEditor->GetPIEWorldContext()->World()->GetGameInstance()->GetSubsystem<USCOSCServerManager>()
+			->ToggleServerMain(ServerSettings->ServerParameters.bEnableServerMain);
 	}
 	else
 	{
-		ServerSettings->ServerParameters.bEnableServerMain = true;
-	}
+		UE_LOG(LogTemp, Log, TEXT("No PIE"));
+	} 
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetClientMainCheckState() const

@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 
-#include "OSCMessage.h"
 #include "SCOSCTypes.h"
 #include "SCOSCSettings.h"
 
@@ -47,6 +46,9 @@ public:
 
 	UFUNCTION()
 	void HandleReceivedMessage(const FOSCMessage& Message, const FString& IPAddress, const int32 Port);
+
+	UFUNCTION()
+	void ToggleServerMain(bool bEnable);
 
 	// Register Listener
 	UFUNCTION(BlueprintCallable)

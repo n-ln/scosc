@@ -23,6 +23,7 @@ void SSCOSCEditorPanel::Construct(const FArguments& InArgs)
 		+ SSplitter::Slot()
 		.Value(0.35f)
 		[
+			/*
 			SNew(SBorder)
 			.BorderImage(FStyleDefaults::GetNoBrush())
 			.Padding(4.f)
@@ -32,11 +33,6 @@ void SSCOSCEditorPanel::Construct(const FArguments& InArgs)
 				.AutoHeight()
 				.Padding(0.f, 0.f, 0.f, 4.f)
 				[
-					/*
-					SNew(STextBlock)
-					.Text(ListTitle)
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
-					*/
 					// Tool bar content
 					InArgs._ToolBar.Widget
 				]
@@ -48,6 +44,8 @@ void SSCOSCEditorPanel::Construct(const FArguments& InArgs)
 					.ListItemsSource(ListSource.Get())
 				]
 			]
+			*/
+			InArgs._ListContent.Widget
 		]
 		+ SSplitter::Slot()
 		.Value(0.65f)

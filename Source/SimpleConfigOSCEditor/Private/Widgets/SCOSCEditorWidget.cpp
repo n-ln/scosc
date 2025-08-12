@@ -16,6 +16,7 @@
 #include "Styling/StyleDefaults.h"
 
 #include "EditorFontGlyphs.h"
+#include "SCOSCServerLists.h"
 #include "SCOSCServerManager.h"
 #include "SCOSCSettings.h"
 #include "./Widgets/SCOSCEditorPanel.h"
@@ -137,7 +138,6 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 			[
 				// OSC Server
 				SNew(SBorder)
-				//.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
 				.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Panel)))
 				[
 					SNew(SVerticalBox)
@@ -146,7 +146,6 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 					.HAlign(HAlign_Fill)
 					[
 						SNew(SBorder)
-						//.BorderImage(new FSlateColorBrush(FLinearColor(FColor(47, 47, 47))))
 						.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Secondary)))
 						[
 							SNew(SHorizontalBox)
@@ -167,6 +166,7 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 						.ListTitle(LOCTEXT("EditorAddrList", "OSC Address List"))
 						.DetailsTitle(LOCTEXT("EditorServerDetail", "OSC Server Details"))
 						.ListSource(OSCAddressList)
+						/*
 						.ToolBar()
 						[
 							SNew(SHorizontalBox)
@@ -179,6 +179,11 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 								.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
 								.Text(LOCTEXT("AddNewServerAddress", "OSC Source"))
 							]
+						]
+						*/
+						.ListContent()
+						[
+							SNew(SSCOSCServerLists)
 						]
 						.DetailsContent()
 						[
@@ -215,7 +220,6 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 			.Value(0.5f)
 			[
 				SNew(SBorder)
-				//.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
 				.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Panel)))
 				[
 					// OSC Client
@@ -225,7 +229,6 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 					.HAlign(HAlign_Fill)
 					[
 						SNew(SBorder)
-						//.BorderImage(new FSlateColorBrush(FLinearColor(FColor(47, 47, 47))))
 						.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Secondary)))
 						[
 							SNew(SHorizontalBox)
@@ -334,7 +337,6 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 
 ECheckBoxState SSCOSCEditorWidget::GetServerMainCheckState() const
 {
-	//return bEnableServerMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 	return GetDefault<USCOSCServerSettings>()->ServerParameters.bEnableServerMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
@@ -359,7 +361,6 @@ void SSCOSCEditorWidget::ToggleServerMain(ECheckBoxState CheckState)
 
 ECheckBoxState SSCOSCEditorWidget::GetClientMainCheckState() const
 {
-	//return bEnableClientMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 	return GetDefault<USCOSCClientSettings>()->ClientParameters.bEnableClientMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
@@ -380,7 +381,6 @@ void SSCOSCEditorWidget::ToggleClientMain(ECheckBoxState CheckState)
 
 ECheckBoxState SSCOSCEditorWidget::GetSettingCheckState() const
 {
-	//return bShowUserSettings ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 	return GetDefault<USCOSCProjectSettings>()->ProjectParameters.bShowUserSettings ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
@@ -402,6 +402,7 @@ void SSCOSCEditorWidget::ToggleSetting(ECheckBoxState CheckState)
 	//ProjectSettings->SaveConfig();
 }
 
+/*
 FReply SSCOSCEditorWidget::OnAddOSCSourceAddress()
 {
 	// Placeholder for adding new OSC server address
@@ -409,6 +410,7 @@ FReply SSCOSCEditorWidget::OnAddOSCSourceAddress()
 
 	return FReply::Handled();
 }
+*/
 
 FReply SSCOSCEditorWidget::OnAddOSCDestinationAddress()
 {

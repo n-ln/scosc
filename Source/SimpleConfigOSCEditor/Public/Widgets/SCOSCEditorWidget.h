@@ -42,7 +42,7 @@ private:
 	ECheckBoxState GetSettingCheckState() const;
 	void ToggleSetting(ECheckBoxState CheckState);
 
-	FReply OnAddOSCSourceAddress();
+	//FReply OnAddOSCSourceAddress();
 
 	FReply OnAddOSCDestinationAddress();
 	

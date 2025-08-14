@@ -23,8 +23,7 @@ public:
 	void Construct(const FArguments& InArgs);
 
 private:
-	// Configuration
-	FText ListTitle;
-	FText DetailsTitle;
-	TSharedPtr<TArray<TSharedPtr<FString>>> ListSource;
+	// Widget references
+	TAlwaysValidWidget ListContent;
+	TAlwaysValidWidget DetailsContent;
 };

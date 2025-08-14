@@ -16,6 +16,7 @@
 #include "Styling/StyleDefaults.h"
 
 #include "EditorFontGlyphs.h"
+#include "SCOSCServerDetails.h"
 #include "SCOSCServerLists.h"
 #include "SCOSCServerManager.h"
 #include "SCOSCSettings.h"
@@ -32,10 +33,7 @@ SSCOSCEditorWidget::~SSCOSCEditorWidget()
 
 void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 {
-	// Input arguments
-	OSCAddressList = InArgs._OSCAddressList;
-	OSCDestinationList = InArgs._OSCDestinationList;
-
+	
 	ChildSlot
 	[
 		SNew(SVerticalBox)
@@ -45,7 +43,6 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 		.Padding(0.f)
 		[
 			SNew(SBorder)
-			//.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
 			.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Panel)))
 			[
 				SNew(SHorizontalBox)
@@ -163,55 +160,13 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 					.Padding(0.f, 4.f, 0.f, 0.f)
 					[
 						SNew(SSCOSCEditorPanel)
-						.ListTitle(LOCTEXT("EditorAddrList", "OSC Address List"))
-						.DetailsTitle(LOCTEXT("EditorServerDetail", "OSC Server Details"))
-						.ListSource(OSCAddressList)
-						/*
-						.ToolBar()
-						[
-							SNew(SHorizontalBox)
-							+ SHorizontalBox::Slot()
-							.AutoWidth()
-							[
-								SNew(SPositiveActionButton)
-								//.OnGetMenuContent(this, &SSCOSCEditorWidget::OnAddOSCSourceAddress)
-								.OnClicked(this, &SSCOSCEditorWidget::OnAddOSCSourceAddress)
-								.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
-								.Text(LOCTEXT("AddNewServerAddress", "OSC Source"))
-							]
-						]
-						*/
 						.ListContent()
 						[
-							SNew(SSCOSCServerLists)
+							SAssignNew(ServerListsWidget, SSCOSCServerLists)
 						]
 						.DetailsContent()
 						[
-							SNew(SScrollBox)
-							+ SScrollBox::Slot()
-							[
-								SNew(SVerticalBox)
-								+ SVerticalBox::Slot()
-								.AutoHeight()
-								.Padding(0.f, 4.f)
-								[
-									SNew(SHorizontalBox)
-									+ SHorizontalBox::Slot()
-									.AutoWidth()
-									.VAlign(VAlign_Center)
-									.Padding(0.f, 0.f, 8.f, 0.f)
-									[
-										SNew(STextBlock)
-										.Text(LOCTEXT("ServerPort", "Port:"))
-									]
-									+ SHorizontalBox::Slot()
-									.FillWidth(1.f)
-									[
-										SNew(SEditableTextBox)
-										.Text(FText::FromString("8000"))
-									]
-								]
-							]
+							SAssignNew(ServerDetailsWidget, SSCOSCServerDetails)
 						]
 					]
 				]
@@ -246,9 +201,6 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 					.Padding(0.f, 4.f, 0.f, 0.f)
 					[
 						SNew(SSCOSCEditorPanel)
-						.ListTitle(LOCTEXT("EditorDestList", "OSC Destination List"))
-						.DetailsTitle(LOCTEXT("EditorClientDetail", "OSC Client Details"))
-						.ListSource(OSCDestinationList)
 						.ToolBar()
 						[
 							SNew(SHorizontalBox)
@@ -333,6 +285,13 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 			]
 		]
 	];
+
+	// Bind delegates after widget creation
+	if (ServerListsWidget.IsValid())
+	{
+		ServerListsWidget->OnServerEndpointSelected().BindSP(this, &SSCOSCEditorWidget::OnServerEndpointSelected);
+		ServerListsWidget->OnServerAddressSelected().BindSP(this, &SSCOSCEditorWidget::OnServerAddressSelected);
+	}
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetServerMainCheckState() const
@@ -402,22 +361,28 @@ void SSCOSCEditorWidget::ToggleSetting(ECheckBoxState CheckState)
 	//ProjectSettings->SaveConfig();
 }
 
-/*
-FReply SSCOSCEditorWidget::OnAddOSCSourceAddress()
-{
-	// Placeholder for adding new OSC server address
-	UE_LOG(LogTemp, Warning, TEXT("OSC Server new address clicked"));
-
-	return FReply::Handled();
-}
-*/
-
 FReply SSCOSCEditorWidget::OnAddOSCDestinationAddress()
 {
 	// Placeholder for adding new OSC client address
 	UE_LOG(LogTemp, Warning, TEXT("OSC Client new address clicked"));
 
 	return FReply::Handled();
+}
+
+void SSCOSCEditorWidget::OnServerEndpointSelected(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem)
+{
+	if (ServerDetailsWidget.IsValid())
+	{
+		ServerDetailsWidget->SetSelectedEndpoint(EndpointItem);
+	}
+}
+
+void SSCOSCEditorWidget::OnServerAddressSelected(TSharedPtr<FSCOSCServerAddressListItem> AddressItem)
+{
+	if (ServerDetailsWidget.IsValid())
+	{
+		ServerDetailsWidget->SetSelectedAddress(AddressItem);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

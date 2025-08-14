@@ -15,6 +15,10 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 	// Input arguments
 	EndpointListItems = InArgs._EndpointListItems;
 	AddressListItems = InArgs._AddressListItems;
+
+	// Temp hard coded list for testing
+	EndpointListItems.Add(MakeShared<FSCOSCServerEndpointListItem>(FSCOSCServerEndpointListItem{ FName(TEXT("Default Server")), FSCOSCServerConfig(), false }));
+	AddressListItems.Add(MakeShared<FSCOSCServerAddressListItem>(FSCOSCServerAddressListItem{ FString(TEXT("/text")), false}));
 	
 	ChildSlot
 	[
@@ -47,8 +51,10 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 				.AutoHeight()
 				[
 					// ListView
-					SNew(SListView<TSharedPtr<FSCOSCServerEndpointListItem>>)
-
+					SAssignNew(EndpointListView, SListView<TSharedPtr<FSCOSCServerEndpointListItem>>)
+					.ListItemsSource(&EndpointListItems)
+					.OnGenerateRow(this, &SSCOSCServerLists::OnGenerateEndpointRow)
+					.OnSelectionChanged(this, &SSCOSCServerLists::OnEndpointSelectionChanged)
 				]
 			]
 			+ SSplitter::Slot()
@@ -75,7 +81,10 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 				.AutoHeight()
 				[
 					// ListView
-					SNew(SListView<TSharedPtr<FSCOSCServerAddressListItem>>)
+					SAssignNew(AddressListView, SListView<TSharedPtr<FSCOSCServerAddressListItem>>)
+					.ListItemsSource(&AddressListItems)
+					.OnGenerateRow(this, &SSCOSCServerLists::OnGenerateAddressRow)
+					.OnSelectionChanged(this, &SSCOSCServerLists::OnAddressSelectionChanged)
 				]
 			]
 		]
@@ -96,6 +105,58 @@ FReply SSCOSCServerLists::OnAddOSCAddress()
 	UE_LOG(LogTemp, Warning, TEXT("OSC Address new address clicked"));
 
 	return FReply::Handled();
+}
+
+TSharedRef<ITableRow> SSCOSCServerLists::OnGenerateEndpointRow(TSharedPtr<FSCOSCServerEndpointListItem> Item, const TSharedRef<STableViewBase>& OwnerTable) const
+{
+	return SNew(STableRow<TSharedPtr<FSCOSCServerEndpointListItem>>, OwnerTable)
+		[
+			SNew(STextBlock)
+			.Text(FText::FromName(Item->ServerName))
+		];
+}
+
+TSharedRef<ITableRow> SSCOSCServerLists::OnGenerateAddressRow(TSharedPtr<FSCOSCServerAddressListItem> Item, const TSharedRef<STableViewBase>& OwnerTable) const
+{
+	return SNew(STableRow<TSharedPtr<FSCOSCServerAddressListItem>>, OwnerTable)
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(Item->OSCAddress))
+		];
+}
+
+void SSCOSCServerLists::OnEndpointSelectionChanged(TSharedPtr<FSCOSCServerEndpointListItem> Item, ESelectInfo::Type SelectInfo)
+{
+	if (Item.IsValid() && SelectInfo != ESelectInfo::Direct)
+	{
+		// Clear address list selection
+		if (AddressListView.IsValid())
+		{
+			AddressListView->ClearSelection();
+		}
+		
+		// Fire delegate
+		OnServerEndpointSelectedDelegate.ExecuteIfBound(Item);
+		
+		UE_LOG(LogTemp, Log, TEXT("Selected OSC Server: %s"), *Item->ServerName.ToString());
+	}
+}
+
+void SSCOSCServerLists::OnAddressSelectionChanged(TSharedPtr<FSCOSCServerAddressListItem> Item, ESelectInfo::Type SelectInfo)
+{
+	if (Item.IsValid() && SelectInfo != ESelectInfo::Direct)
+	{
+		// Clear endpoint list selection
+		if (EndpointListView.IsValid())
+		{
+			EndpointListView->ClearSelection();
+		}
+		
+		// Fire delegate
+		OnServerAddressSelectedDelegate.ExecuteIfBound(Item);
+		
+		UE_LOG(LogTemp, Log, TEXT("Selected OSC Address: %s"), *Item->OSCAddress);
+	}
 }
 
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION

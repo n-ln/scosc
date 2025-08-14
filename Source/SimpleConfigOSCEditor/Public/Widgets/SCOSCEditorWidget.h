@@ -4,6 +4,12 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 
+// Forward declarations
+class SSCOSCServerLists;
+class SSCOSCServerDetails;
+struct FSCOSCServerEndpointListItem;
+struct FSCOSCServerAddressListItem;
+
 class SSCOSCEditorWidget : public SCompoundWidget
 {
 public:
@@ -29,9 +35,6 @@ public:
 	bool bShowUserSettings;
 
 private:
-	// Data sources from module
-	TSharedPtr<TArray<TSharedPtr<FString>>> OSCAddressList;
-	TSharedPtr<TArray<TSharedPtr<FString>>> OSCDestinationList;
 
 	ECheckBoxState GetServerMainCheckState() const;
 	void ToggleServerMain(ECheckBoxState CheckState);
@@ -41,9 +44,14 @@ private:
 
 	ECheckBoxState GetSettingCheckState() const;
 	void ToggleSetting(ECheckBoxState CheckState);
-
-	//FReply OnAddOSCSourceAddress();
-
-	FReply OnAddOSCDestinationAddress();
 	
+	FReply OnAddOSCDestinationAddress();
+
+	// Widget references
+	TSharedPtr<SSCOSCServerLists> ServerListsWidget;
+	TSharedPtr<SSCOSCServerDetails> ServerDetailsWidget;
+
+	// Delegate handlers
+	void OnServerEndpointSelected(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem);
+	void OnServerAddressSelected(TSharedPtr<FSCOSCServerAddressListItem> AddressItem);
 };

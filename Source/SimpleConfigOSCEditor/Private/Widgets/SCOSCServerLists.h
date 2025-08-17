@@ -33,6 +33,9 @@ struct FSCOSCServerAddressListItem
 };
 
 // Delegates for list selection
+// New creation
+DECLARE_DELEGATE_OneParam(FOnServerEndpointCreateNew, TSharedPtr<FSCOSCServerEndpointListItem>);
+// Existing
 DECLARE_DELEGATE_OneParam(FOnServerEndpointSelected, TSharedPtr<FSCOSCServerEndpointListItem>);
 DECLARE_DELEGATE_OneParam(FOnServerAddressSelected, TSharedPtr<FSCOSCServerAddressListItem>);
 
@@ -53,6 +56,9 @@ public:
 	void RefreshFromSettings();
 
 	// Delegate accessors
+	// New creation
+	FOnServerEndpointCreateNew& OnServerEndpointCreateNew() { return OnServerEndpointCreateNewDelegate; }
+	// Existing
 	FOnServerEndpointSelected& OnServerEndpointSelected() { return OnServerEndpointSelectedDelegate; }
 	FOnServerAddressSelected& OnServerAddressSelected() { return OnServerAddressSelectedDelegate; }
 
@@ -70,6 +76,9 @@ private:
 	void OnAddressSelectionChanged(TSharedPtr<FSCOSCServerAddressListItem> Item, ESelectInfo::Type SelectInfo);
 
 	// Delegates
+	// New creation
+	FOnServerEndpointCreateNew OnServerEndpointCreateNewDelegate;
+	// Existing
 	FOnServerEndpointSelected OnServerEndpointSelectedDelegate;
 	FOnServerAddressSelected OnServerAddressSelectedDelegate;
 

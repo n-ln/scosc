@@ -51,8 +51,6 @@ public:
 	FSCOSCServerParameters ServerParameters;
 
 private:
-	// Create default server
-	void TempEnsureDefaultServer();
 };
 
 UCLASS(Config = OSCClientSettings, MinimalAPI)

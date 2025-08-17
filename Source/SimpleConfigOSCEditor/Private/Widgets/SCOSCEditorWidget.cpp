@@ -289,6 +289,9 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 	// Bind delegates after widget creation
 	if (ServerListsWidget.IsValid())
 	{
+		// New creation
+		ServerListsWidget->OnServerEndpointCreateNew().BindSP(this, &SSCOSCEditorWidget::OnServerEndpointCreateNew);
+		// Existing
 		ServerListsWidget->OnServerEndpointSelected().BindSP(this, &SSCOSCEditorWidget::OnServerEndpointSelected);
 		ServerListsWidget->OnServerAddressSelected().BindSP(this, &SSCOSCEditorWidget::OnServerAddressSelected);
 	}
@@ -374,11 +377,19 @@ FReply SSCOSCEditorWidget::OnAddOSCDestinationAddress()
 	return FReply::Handled();
 }
 
+void SSCOSCEditorWidget::OnServerEndpointCreateNew(TSharedPtr<FSCOSCServerEndpointListItem> NewEndpointItem)
+{
+	if (ServerDetailsWidget.IsValid())
+	{
+		ServerDetailsWidget->SetSelectedEndpoint(NewEndpointItem, true);
+	}
+}
+
 void SSCOSCEditorWidget::OnServerEndpointSelected(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem)
 {
 	if (ServerDetailsWidget.IsValid())
 	{
-		ServerDetailsWidget->SetSelectedEndpoint(EndpointItem);
+		ServerDetailsWidget->SetSelectedEndpoint(EndpointItem, false);
 	}
 }
 
@@ -390,12 +401,18 @@ void SSCOSCEditorWidget::OnServerAddressSelected(TSharedPtr<FSCOSCServerAddressL
 	}
 }
 
-void SSCOSCEditorWidget::OnServerSettingsSaved()
+void SSCOSCEditorWidget::OnServerSettingsSaved(bool bIsNewItem)
 {
 	// Refresh the server lists to reflect saved changes
 	if (ServerListsWidget.IsValid())
 	{
 		ServerListsWidget->RefreshFromSettings();
+	}
+
+	if (bIsNewItem)
+	{
+		// TODO auto set selected list item to the newly created one
+		
 	}
 }
 

@@ -46,23 +46,40 @@ void SSCOSCServerDetails::Construct(const FArguments& InArgs)
 	BuildEmptyState();
 }
 
-void SSCOSCServerDetails::SetSelectedEndpoint(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem)
+void SSCOSCServerDetails::SetSelectedEndpoint(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem, bool bIsNewItem)
 {
 	CurrentEndpointItem = EndpointItem;
 	CurrentAddressItem.Reset();
 
 	if (EndpointItem.IsValid())
 	{
-		// Store original values for cancel functionality
-		OriginalServerName = EndpointItem->ServerName;
-		OriginalServerConfig = EndpointItem->ServerConfig;
-
-		if (TitleTextBlock.IsValid())
+		if (bIsNewItem)
 		{
-			TitleTextBlock->SetText(FText::Format(LOCTEXT("EndpointTitle", "OSC Server: {0}"), FText::FromName(EndpointItem->ServerName)));
-		}
+			// New endpoint
+			OriginalServerName = EndpointItem->ServerName;
+			OriginalServerConfig = EndpointItem->ServerConfig;
+
+			if (TitleTextBlock.IsValid())
+			{
+				TitleTextBlock->SetText(LOCTEXT("NewEndpointTitle", "Create New OSC Server"));
+			}
 		
-		BuildEndpointEditForm();
+			BuildEndpointEditForm(true);
+		}
+		else
+		{
+			// Existing endpoint
+			// Store original values for cancel functionality
+			OriginalServerName = EndpointItem->ServerName;
+			OriginalServerConfig = EndpointItem->ServerConfig;
+
+			if (TitleTextBlock.IsValid())
+			{
+				TitleTextBlock->SetText(FText::Format(LOCTEXT("EndpointTitle", "OSC Server: {0}"), FText::FromName(EndpointItem->ServerName)));
+			}
+		
+			BuildEndpointEditForm(false);
+		}
 	}
 	else
 	{
@@ -103,7 +120,7 @@ void SSCOSCServerDetails::ClearSelection()
 	BuildEmptyState();
 }
 
-void SSCOSCServerDetails::BuildEndpointEditForm()
+void SSCOSCServerDetails::BuildEndpointEditForm(bool bIsNewItem)
 {
 	if (!ContentContainer.IsValid() || !CurrentEndpointItem.IsValid())
 	{
@@ -182,7 +199,7 @@ void SSCOSCServerDetails::BuildEndpointEditForm()
 	.AutoHeight()
 	.Padding(0.0f, 8.0f)
 	[
-		SAssignNew(EnableByDefaultCheckBox, SCheckBox)
+		SAssignNew(IsEnabledCheckBox, SCheckBox)
 		.IsChecked(CurrentEndpointItem->ServerConfig.bIsEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
 		[
 			SNew(STextBlock)
@@ -201,14 +218,14 @@ void SSCOSCServerDetails::BuildEndpointEditForm()
 		[
 			SAssignNew(SaveButton, SButton)
 			.Text(LOCTEXT("SaveButton", "Save"))
-			.OnClicked(this, &SSCOSCServerDetails::OnSaveClicked)
+			.OnClicked(this, &SSCOSCServerDetails::OnSaveClicked, bIsNewItem)
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
 		[
 			SAssignNew(CancelButton, SButton)
 			.Text(LOCTEXT("CancelButton", "Cancel"))
-			.OnClicked(this, &SSCOSCServerDetails::OnCancelClicked)
+			.OnClicked(this, &SSCOSCServerDetails::OnCancelClicked, bIsNewItem)
 		]
 	];
 }
@@ -252,7 +269,7 @@ void SSCOSCServerDetails::BuildEmptyState()
 	];
 }
 
-FReply SSCOSCServerDetails::OnSaveClicked()
+FReply SSCOSCServerDetails::OnSaveClicked(bool bIsNewItem)
 {
 	if (!CurrentEndpointItem.IsValid())
 		return FReply::Handled();
@@ -261,7 +278,7 @@ FReply SSCOSCServerDetails::OnSaveClicked()
 	FName NewServerName = FName(*ServerNameTextBox->GetText().ToString());
 	FString NewIPAddress = IPAddressTextBox->GetText().ToString();
 	int32 NewPort = FCString::Atoi(*PortTextBox->GetText().ToString());
-	bool bNewEnableByDefault = EnableByDefaultCheckBox->IsChecked();
+	bool bNewIsEnabled = IsEnabledCheckBox->IsChecked();
 
 	// Validate port range
 	if (NewPort < 1 || NewPort > 65535)
@@ -281,12 +298,13 @@ FReply SSCOSCServerDetails::OnSaveClicked()
 		}
 
 		// Add/update new entry
-		FSCOSCServerConfig NewConfig(NewIPAddress, (uint16)NewPort, bNewEnableByDefault);
+		FSCOSCServerConfig NewConfig(NewIPAddress, (uint16)NewPort, bNewIsEnabled);
 		ServerSettings->ServerParameters.ServerConfigs.Add(NewServerName, NewConfig);
 
 		// Save to disk
 		ServerSettings->SaveConfig();
 
+		// Existing endpoint
 		// Update current item
 		CurrentEndpointItem->ServerName = NewServerName;
 		CurrentEndpointItem->ServerConfig = NewConfig;
@@ -300,12 +318,24 @@ FReply SSCOSCServerDetails::OnSaveClicked()
 		{
 			TitleTextBlock->SetText(FText::Format(LOCTEXT("EndpointTitle", "OSC Server: {0}"), FText::FromName(NewServerName)));
 		}
-
+		
+		if (bIsNewItem)
+		{
+			// New endpoint
+			// Execute delegate to update server list
+			// TODO and select the new item in list
+			// for now just clear selection
+			ClearSelection();
+			OnServerSettingsSavedDelegate.ExecuteIfBound(true /*bIsNewItem*/);
+		}
+		else
+		{
+			// Execute delegate to update server list
+			OnServerSettingsSavedDelegate.ExecuteIfBound(false /*bIsNewItem*/);
+		}
+		
 		// Notify server manager if game is running
 		NotifyRuntimeServerManager(NewServerName, NewConfig);
-
-		// Execute delegate to update server list
-		OnServerSettingsSavedDelegate.ExecuteIfBound();
 
 		UE_LOG(LogTemp, Log, TEXT("Saved OSC Server: %s (%s:%d)"), *NewServerName.ToString(), *NewIPAddress, NewPort);
 	}
@@ -313,27 +343,37 @@ FReply SSCOSCServerDetails::OnSaveClicked()
 	return FReply::Handled();
 }
 
-FReply SSCOSCServerDetails::OnCancelClicked()
+FReply SSCOSCServerDetails::OnCancelClicked(bool bIsNewItem)
 {
 	if (!CurrentEndpointItem.IsValid())
 		return FReply::Handled();
 
-	// Restore original values to form
-	if (ServerNameTextBox.IsValid())
+	if (bIsNewItem)
 	{
-		ServerNameTextBox->SetText(FText::FromName(OriginalServerName));
+		// New endpoint
+		// Return to empty state
+		ClearSelection();
 	}
-	if (IPAddressTextBox.IsValid())
+	else
 	{
-		IPAddressTextBox->SetText(FText::FromString(OriginalServerConfig.IPAddress));
-	}
-	if (PortTextBox.IsValid())
-	{
-		PortTextBox->SetText(FText::FromString(FString::FromInt(OriginalServerConfig.Port)));
-	}
-	if (EnableByDefaultCheckBox.IsValid())
-	{
-		EnableByDefaultCheckBox->SetIsChecked(OriginalServerConfig.bIsEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+		// Existing endpoint
+		// Restore original values to form
+		if (ServerNameTextBox.IsValid())
+		{
+			ServerNameTextBox->SetText(FText::FromName(OriginalServerName));
+		}
+		if (IPAddressTextBox.IsValid())
+		{
+			IPAddressTextBox->SetText(FText::FromString(OriginalServerConfig.IPAddress));
+		}
+		if (PortTextBox.IsValid())
+		{
+			PortTextBox->SetText(FText::FromString(FString::FromInt(OriginalServerConfig.Port)));
+		}
+		if (IsEnabledCheckBox.IsValid())
+		{
+			IsEnabledCheckBox->SetIsChecked(OriginalServerConfig.bIsEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+		}
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("Cancelled changes to OSC Server: %s"), *OriginalServerName.ToString());

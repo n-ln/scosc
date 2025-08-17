@@ -55,7 +55,11 @@ private:
 	TSharedPtr<SSCOSCServerDetails> ServerDetailsWidget;
 
 	// Delegate handlers
+	// New creation
+	void OnServerEndpointCreateNew(TSharedPtr<FSCOSCServerEndpointListItem> NewEndpointItem);
+	// Existing
 	void OnServerEndpointSelected(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem);
 	void OnServerAddressSelected(TSharedPtr<FSCOSCServerAddressListItem> AddressItem);
-	void OnServerSettingsSaved();
+	// Settings saved notification
+	void OnServerSettingsSaved(bool bIsNewItem);
 };

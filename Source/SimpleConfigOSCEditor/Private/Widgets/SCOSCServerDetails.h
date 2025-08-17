@@ -22,12 +22,13 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	// Update current selected item
-	void SetSelectedEndpoint(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem);
+	void SetSelectedEndpoint(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem, bool bIsNewItem);
 	void SetSelectedAddress(TSharedPtr<FSCOSCServerAddressListItem> AddressItem);
 	void ClearSelection();
 
 	// Delegate for notifying when settings are saved
-	DECLARE_DELEGATE(FOnServerSettingsSaved);
+	DECLARE_DELEGATE_OneParam(FOnServerSettingsSaved, bool /*bIsNewItem*/);
+	// Delegate accessor
 	FOnServerSettingsSaved& OnServerSettingsSaved() { return OnServerSettingsSavedDelegate; }
 
 private:
@@ -39,7 +40,7 @@ private:
 	TSharedPtr<SEditableTextBox> ServerNameTextBox;
 	TSharedPtr<SEditableTextBox> IPAddressTextBox;
 	TSharedPtr<SEditableTextBox> PortTextBox;
-	TSharedPtr<SCheckBox> EnableByDefaultCheckBox;
+	TSharedPtr<SCheckBox> IsEnabledCheckBox;
 	TSharedPtr<SButton> SaveButton;
 	TSharedPtr<SButton> CancelButton;
 
@@ -55,10 +56,10 @@ private:
 	FOnServerSettingsSaved OnServerSettingsSavedDelegate;
 
 	// Methods
-	void BuildEndpointEditForm();
+	void BuildEndpointEditForm(bool bIsNewItem);
 	void BuildAddressEditForm();
 	void BuildEmptyState();
-	FReply OnSaveClicked();
-	FReply OnCancelClicked();
+	FReply OnSaveClicked(bool bIsNewItem);
+	FReply OnCancelClicked(bool bIsNewItem);
 	void NotifyRuntimeServerManager(const FName& ServerName, const FSCOSCServerConfig& Config);
 };

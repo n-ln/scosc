@@ -17,16 +17,6 @@ USCOSCProjectSettings::USCOSCProjectSettings()
 USCOSCServerSettings::USCOSCServerSettings()
 {
 	ServerParameters.bEnableServerMain = false;
-	TempEnsureDefaultServer();
-}
-
-void USCOSCServerSettings::TempEnsureDefaultServer()
-{
-	if (ServerParameters.ServerConfigs.Num() == 0)
-	{
-		FSCOSCServerConfig DefaultConfig(FString("0.0.0.0"), 38000, true);
-		ServerParameters.ServerConfigs.Add(FName("DefaultServer"), DefaultConfig);
-	}
 }
 
 USCOSCClientSettings::USCOSCClientSettings()

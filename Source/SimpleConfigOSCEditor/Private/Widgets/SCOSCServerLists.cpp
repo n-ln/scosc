@@ -93,8 +93,26 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 
 FReply SSCOSCServerLists::OnAddOSCEndpoint()
 {
-	// Placeholder for adding new OSC server endpoint
-	UE_LOG(LogTemp, Warning, TEXT("OSC Server new endpoint clicked"));
+	// Clear endpoint and address list selection
+	if (EndpointListView.IsValid())
+	{
+		EndpointListView->ClearSelection();
+	}
+	if (AddressListView.IsValid())
+	{
+		AddressListView->ClearSelection();
+	}
+	
+	// Create new list item
+	TSharedPtr<FSCOSCServerEndpointListItem> NewItem = MakeShared<FSCOSCServerEndpointListItem>(
+		FName("New Server"),
+		FSCOSCServerConfig(FString("0.0.0.0"), 0, false),
+		false
+	);
+	// Fire delegate
+	OnServerEndpointCreateNewDelegate.ExecuteIfBound(NewItem);
+	
+	UE_LOG(LogTemp, Warning, TEXT("Creating OSC Server new endpoint"));
 
 	return FReply::Handled();
 }

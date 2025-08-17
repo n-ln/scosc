@@ -309,9 +309,9 @@ FReply SSCOSCServerDetails::OnSaveClicked(bool bIsNewItem)
 	}
 
 	// Validate port range
-	if (NewPort < 1 || NewPort > 65535)
+	if (NewPort < 1024 || NewPort > 65535)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Invalid port number: %d."), NewPort);
+		UE_LOG(LogTemp, Warning, TEXT("Invalid port number: %d. Must be between 1024 and 65535."), NewPort);
 		return FReply::Handled();
 	}
 

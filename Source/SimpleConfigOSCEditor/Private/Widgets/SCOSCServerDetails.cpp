@@ -318,8 +318,9 @@ FReply SSCOSCServerDetails::OnSaveClicked(bool bIsNewItem)
 	// Update settings
 	if (USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>())
 	{
-		// Remove old entry if name changed
-		if (NewServerName != OriginalServerName)
+		// For existing items, remove old entry if name changed
+		// For new items, don't remove anything
+		if (!bIsNewItem && NewServerName != OriginalServerName)
 		{
 			ServerSettings->ServerParameters.ServerConfigs.Remove(OriginalServerName);
 		}
@@ -421,7 +422,11 @@ void SSCOSCServerDetails::NotifyRuntimeServerManager(const FName& ServerName, co
 			{
 				ServerManager->StopServer(ServerName);
 				ServerManager->SetServerEndpoint(ServerName, Config.IPAddress, Config.Port);
-				ServerManager->StartServer(ServerName);
+				// Start server again if set to enabled
+				if (Config.bIsEnabled)
+				{
+					ServerManager->StartServer(ServerName);
+				}
 				UE_LOG(LogTemp, Log, TEXT("Updated runtime server endpoint: %s (%s:%d)"), *ServerName.ToString(), *Config.IPAddress, Config.Port);
 			}
 		}

@@ -313,17 +313,12 @@ void SSCOSCEditorWidget::ToggleServerMain(ECheckBoxState CheckState)
 
 	ServerSettings->ServerParameters.bEnableServerMain = !ServerSettings->ServerParameters.bEnableServerMain;
 	
-	if (GEditor->GetPIEWorldContext())
+	if (GEditor && GEditor->GetPIEWorldContext())
 	{
-		UE_LOG(LogTemp, Log, TEXT("PIE"));
-
+		// If in PIE, toggle the servers
 		GEditor->GetPIEWorldContext()->World()->GetGameInstance()->GetSubsystem<USCOSCServerManager>()
 			->ToggleServerMain(ServerSettings->ServerParameters.bEnableServerMain);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("No PIE"));
-	} 
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetClientMainCheckState() const

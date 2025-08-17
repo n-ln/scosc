@@ -16,6 +16,7 @@ void USCOSCServerManager::Initialize(FSubsystemCollectionBase& Collection)
 	// Initialize servers from settings
 	for (const TPair<FName, FSCOSCServerConfig>& Config : ServerSettings->ServerParameters.ServerConfigs)
 	{
+		// Create server
 		if (OSCServers.Contains(Config.Key))
 		{
 			UE_LOG(LogTemp, Error, TEXT("OSC Server %s already exists"), *Config.Key.ToString());
@@ -32,12 +33,10 @@ void USCOSCServerManager::Initialize(FSubsystemCollectionBase& Collection)
 		OSCServers.Add(Config.Key, NewServerStatus);
 
 		SetServerEndpoint(Config.Key, Config.Value.IPAddress, Config.Value.Port);
-
-		if (Config.Value.bIsEnabled)
-		{
-			StartServer(Config.Key);
-		}
 	}
+
+	// Start enabled server if main toggle is enabled
+	ToggleServerMain(ServerSettings->ServerParameters.bEnableServerMain);
 	
 	UE_LOG(LogTemp, Warning, TEXT("OSC Server Manager initialized"));
 }
@@ -151,10 +150,18 @@ void USCOSCServerManager::ToggleServerMain(bool bEnable)
 {
 	if (bEnable)
 	{
-		// Start all servers
+		// Start server if set to enabled in settings
 		for (TPair<FName, FSCOSCServerRuntimeStatus> Server : OSCServers)
 		{
-			StartServer(Server.Key);
+			FSCOSCServerConfig Config = ServerSettings->ServerParameters.ServerConfigs.FindRef(Server.Key);
+			if (Config.bIsEnabled)
+			{
+				StartServer(Server.Key);
+			}
+			else
+			{
+				StopServer(Server.Key);
+			}
 		}
 	}
 	else

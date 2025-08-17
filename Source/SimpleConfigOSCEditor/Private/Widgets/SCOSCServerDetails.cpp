@@ -280,6 +280,34 @@ FReply SSCOSCServerDetails::OnSaveClicked(bool bIsNewItem)
 	int32 NewPort = FCString::Atoi(*PortTextBox->GetText().ToString());
 	bool bNewIsEnabled = IsEnabledCheckBox->IsChecked();
 
+	// Validate if server name is unique and not empty
+	if (NewServerName.IsNone())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Server name can't be empty."));
+		return FReply::Handled();
+	}
+	if (USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>())
+	{
+		if (bIsNewItem)
+		{
+			// Check if name already exists
+			if (ServerSettings->ServerParameters.ServerConfigs.Contains(NewServerName))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Server name already exists."));
+				return FReply::Handled();
+			}
+		}
+		else
+		{
+			// Existing item, check if name changed and if new name already exists
+			if (NewServerName != OriginalServerName && ServerSettings->ServerParameters.ServerConfigs.Contains(NewServerName))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Server name already exists."));
+				return FReply::Handled();
+			}
+		}
+	}
+
 	// Validate port range
 	if (NewPort < 1 || NewPort > 65535)
 	{
@@ -288,8 +316,7 @@ FReply SSCOSCServerDetails::OnSaveClicked(bool bIsNewItem)
 	}
 
 	// Update settings
-	USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>();
-	if (ServerSettings)
+	if (USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>())
 	{
 		// Remove old entry if name changed
 		if (NewServerName != OriginalServerName)

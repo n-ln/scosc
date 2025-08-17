@@ -7,7 +7,13 @@
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SBox.h"
+#include "Widgets/Input/SEditableTextBox.h"
+#include "Widgets/Input/SCheckBox.h"
+#include "Widgets/Input/SButton.h"
 #include "Styling/CoreStyle.h"
+#include "SCOSCSettings.h"
+#include "SCOSCServerManager.h"
+#include "Engine/Engine.h"
 
 #define LOCTEXT_NAMESPACE "SSCOSCServerDetails"
 
@@ -32,12 +38,12 @@ void SSCOSCServerDetails::Construct(const FArguments& InArgs)
 			+ SVerticalBox::Slot()
 			.FillHeight(1.0f)
 			[
-				SAssignNew(ContentTextBlock, STextBlock)
-				.Text(LOCTEXT("NoSelectionContent", "Select an OSC Server or Address to view and edit details"))
-				.AutoWrapText(true)
+				SAssignNew(ContentContainer, SVerticalBox)
 			]
 		]
 	];
+
+	BuildEmptyState();
 }
 
 void SSCOSCServerDetails::SetSelectedEndpoint(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem)
@@ -47,21 +53,20 @@ void SSCOSCServerDetails::SetSelectedEndpoint(TSharedPtr<FSCOSCServerEndpointLis
 
 	if (EndpointItem.IsValid())
 	{
+		// Store original values for cancel functionality
+		OriginalServerName = EndpointItem->ServerName;
+		OriginalServerConfig = EndpointItem->ServerConfig;
+
 		if (TitleTextBlock.IsValid())
 		{
 			TitleTextBlock->SetText(FText::Format(LOCTEXT("EndpointTitle", "OSC Server: {0}"), FText::FromName(EndpointItem->ServerName)));
 		}
 		
-		if (ContentTextBlock.IsValid())
-		{
-			FString ContentString = FString::Printf(TEXT("Server Name: %s\nIP Address: %s\nPort: %d\nEnabled by Default: %s"),
-				*EndpointItem->ServerName.ToString(),
-				*EndpointItem->ServerConfig.IPAddress,
-				EndpointItem->ServerConfig.Port,
-				EndpointItem->ServerConfig.bEnableByDefault ? TEXT("Yes") : TEXT("No"));
-			
-			ContentTextBlock->SetText(FText::FromString(ContentString));
-		}
+		BuildEndpointEditForm();
+	}
+	else
+	{
+		BuildEmptyState();
 	}
 }
 
@@ -77,14 +82,11 @@ void SSCOSCServerDetails::SetSelectedAddress(TSharedPtr<FSCOSCServerAddressListI
 			TitleTextBlock->SetText(FText::Format(LOCTEXT("AddressTitle", "OSC Address: {0}"), FText::FromString(AddressItem->OSCAddress)));
 		}
 		
-		if (ContentTextBlock.IsValid())
-		{
-			FString ContentString = FString::Printf(TEXT("OSC Address: %s\nSelected: %s"),
-				*AddressItem->OSCAddress,
-				AddressItem->bIsSelected ? TEXT("Yes") : TEXT("No"));
-			
-			ContentTextBlock->SetText(FText::FromString(ContentString));
-		}
+		BuildAddressEditForm();
+	}
+	else
+	{
+		BuildEmptyState();
 	}
 }
 
@@ -98,9 +100,264 @@ void SSCOSCServerDetails::ClearSelection()
 		TitleTextBlock->SetText(LOCTEXT("NoSelectionTitle", "No Selection"));
 	}
 	
-	if (ContentTextBlock.IsValid())
+	BuildEmptyState();
+}
+
+void SSCOSCServerDetails::BuildEndpointEditForm()
+{
+	if (!ContentContainer.IsValid() || !CurrentEndpointItem.IsValid())
 	{
-		ContentTextBlock->SetText(LOCTEXT("NoSelectionContent", "Select an OSC Server or Address to view and edit details"));
+		return;
+	}
+
+	ContentContainer->ClearChildren();
+
+	ContentContainer->AddSlot()
+	.AutoHeight()
+	.Padding(0.0f, 8.0f)
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("ServerNameLabel", "Server Name:"))
+			.MinDesiredWidth(80.0f)
+		]
+		+ SHorizontalBox::Slot()
+		.FillWidth(1.0f)
+		[
+			SAssignNew(ServerNameTextBox, SEditableTextBox)
+			.Text(FText::FromName(CurrentEndpointItem->ServerName))
+		]
+	];
+
+	ContentContainer->AddSlot()
+	.AutoHeight()
+	.Padding(0.0f, 8.0f)
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("IPAddressLabel", "IP Address:"))
+			.MinDesiredWidth(80.0f)
+		]
+		+ SHorizontalBox::Slot()
+		.FillWidth(1.0f)
+		[
+			SAssignNew(IPAddressTextBox, SEditableTextBox)
+			.Text(FText::FromString(CurrentEndpointItem->ServerConfig.IPAddress))
+		]
+	];
+
+	ContentContainer->AddSlot()
+	.AutoHeight()
+	.Padding(0.0f, 8.0f)
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("PortLabel", "Port:"))
+			.MinDesiredWidth(80.0f)
+		]
+		+ SHorizontalBox::Slot()
+		.FillWidth(1.0f)
+		[
+			SAssignNew(PortTextBox, SEditableTextBox)
+			.Text(FText::FromString(FString::FromInt(CurrentEndpointItem->ServerConfig.Port)))
+		]
+	];
+
+	ContentContainer->AddSlot()
+	.AutoHeight()
+	.Padding(0.0f, 8.0f)
+	[
+		SAssignNew(EnableByDefaultCheckBox, SCheckBox)
+		.IsChecked(CurrentEndpointItem->ServerConfig.bIsEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("IsEnabledLabel", "Enable"))
+		]
+	];
+
+	ContentContainer->AddSlot()
+	.AutoHeight()
+	.Padding(0.0f, 16.0f, 0.0f, 0.0f)
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
+		[
+			SAssignNew(SaveButton, SButton)
+			.Text(LOCTEXT("SaveButton", "Save"))
+			.OnClicked(this, &SSCOSCServerDetails::OnSaveClicked)
+		]
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			SAssignNew(CancelButton, SButton)
+			.Text(LOCTEXT("CancelButton", "Cancel"))
+			.OnClicked(this, &SSCOSCServerDetails::OnCancelClicked)
+		]
+	];
+}
+
+void SSCOSCServerDetails::BuildAddressEditForm()
+{
+	if (!ContentContainer.IsValid() || !CurrentAddressItem.IsValid())
+	{
+		return;
+	}
+
+	ContentContainer->ClearChildren();
+
+	ContentContainer->AddSlot()
+	.AutoHeight()
+	.Padding(0.0f, 8.0f)
+	[
+		SNew(STextBlock)
+		.Text(LOCTEXT("Placeholder", "Placeholder for OSC Address detail panel"))
+		.AutoWrapText(true)
+	];
+}
+
+void SSCOSCServerDetails::BuildEmptyState()
+{
+	if (!ContentContainer.IsValid())
+	{
+		return;
+	}
+
+	ContentContainer->ClearChildren();
+
+	ContentContainer->AddSlot()
+	.FillHeight(1.0f)
+	.VAlign(VAlign_Center)
+	[
+		SNew(STextBlock)
+		.Text(LOCTEXT("NoSelectionContent", "Select an OSC Server or Address to view and edit details"))
+		.AutoWrapText(true)
+		.Justification(ETextJustify::Center)
+	];
+}
+
+FReply SSCOSCServerDetails::OnSaveClicked()
+{
+	if (!CurrentEndpointItem.IsValid())
+		return FReply::Handled();
+
+	// Get values from form
+	FName NewServerName = FName(*ServerNameTextBox->GetText().ToString());
+	FString NewIPAddress = IPAddressTextBox->GetText().ToString();
+	int32 NewPort = FCString::Atoi(*PortTextBox->GetText().ToString());
+	bool bNewEnableByDefault = EnableByDefaultCheckBox->IsChecked();
+
+	// Validate port range
+	if (NewPort < 1 || NewPort > 65535)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid port number: %d."), NewPort);
+		return FReply::Handled();
+	}
+
+	// Update settings
+	USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>();
+	if (ServerSettings)
+	{
+		// Remove old entry if name changed
+		if (NewServerName != OriginalServerName)
+		{
+			ServerSettings->ServerParameters.ServerConfigs.Remove(OriginalServerName);
+		}
+
+		// Add/update new entry
+		FSCOSCServerConfig NewConfig(NewIPAddress, (uint16)NewPort, bNewEnableByDefault);
+		ServerSettings->ServerParameters.ServerConfigs.Add(NewServerName, NewConfig);
+
+		// Save to disk
+		ServerSettings->SaveConfig();
+
+		// Update current item
+		CurrentEndpointItem->ServerName = NewServerName;
+		CurrentEndpointItem->ServerConfig = NewConfig;
+
+		// Update original values to the newly saved state (for future cancel operations)
+		OriginalServerName = NewServerName;
+		OriginalServerConfig = NewConfig;
+
+		// Update title
+		if (TitleTextBlock.IsValid())
+		{
+			TitleTextBlock->SetText(FText::Format(LOCTEXT("EndpointTitle", "OSC Server: {0}"), FText::FromName(NewServerName)));
+		}
+
+		// Notify server manager if game is running
+		NotifyRuntimeServerManager(NewServerName, NewConfig);
+
+		// Execute delegate to update server list
+		OnServerSettingsSavedDelegate.ExecuteIfBound();
+
+		UE_LOG(LogTemp, Log, TEXT("Saved OSC Server: %s (%s:%d)"), *NewServerName.ToString(), *NewIPAddress, NewPort);
+	}
+
+	return FReply::Handled();
+}
+
+FReply SSCOSCServerDetails::OnCancelClicked()
+{
+	if (!CurrentEndpointItem.IsValid())
+		return FReply::Handled();
+
+	// Restore original values to form
+	if (ServerNameTextBox.IsValid())
+	{
+		ServerNameTextBox->SetText(FText::FromName(OriginalServerName));
+	}
+	if (IPAddressTextBox.IsValid())
+	{
+		IPAddressTextBox->SetText(FText::FromString(OriginalServerConfig.IPAddress));
+	}
+	if (PortTextBox.IsValid())
+	{
+		PortTextBox->SetText(FText::FromString(FString::FromInt(OriginalServerConfig.Port)));
+	}
+	if (EnableByDefaultCheckBox.IsValid())
+	{
+		EnableByDefaultCheckBox->SetIsChecked(OriginalServerConfig.bIsEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Cancelled changes to OSC Server: %s"), *OriginalServerName.ToString());
+
+	return FReply::Handled();
+}
+
+void SSCOSCServerDetails::NotifyRuntimeServerManager(const FName& ServerName, const FSCOSCServerConfig& Config)
+{
+	// Notify if game is running
+	if (GEditor && GEditor->GetPIEWorldContext())
+	{
+		USCOSCServerManager* ServerManager = GEditor->GetPIEWorldContext()->World()->GetGameInstance()->GetSubsystem<USCOSCServerManager>();
+		if (ServerManager)
+		{
+			// Update server endpoint if exists
+			if (ServerManager->GetOSCServer(ServerName))
+			{
+				ServerManager->StopServer(ServerName);
+				ServerManager->SetServerEndpoint(ServerName, Config.IPAddress, Config.Port);
+				ServerManager->StartServer(ServerName);
+				UE_LOG(LogTemp, Log, TEXT("Updated runtime server endpoint: %s (%s:%d)"), *ServerName.ToString(), *Config.IPAddress, Config.Port);
+			}
+		}
 	}
 }
 

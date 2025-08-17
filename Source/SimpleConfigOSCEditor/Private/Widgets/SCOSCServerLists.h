@@ -49,6 +49,9 @@ public:
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs);
 
+	// Settings management
+	void RefreshFromSettings();
+
 	// Delegate accessors
 	FOnServerEndpointSelected& OnServerEndpointSelected() { return OnServerEndpointSelectedDelegate; }
 	FOnServerAddressSelected& OnServerAddressSelected() { return OnServerAddressSelectedDelegate; }

@@ -35,6 +35,9 @@ public:
 	bool bShowUserSettings;
 
 private:
+	// Data sources from module
+	TSharedPtr<TArray<TSharedPtr<FString>>> OSCAddressList;
+	TSharedPtr<TArray<TSharedPtr<FString>>> OSCDestinationList;
 
 	ECheckBoxState GetServerMainCheckState() const;
 	void ToggleServerMain(ECheckBoxState CheckState);
@@ -54,4 +57,5 @@ private:
 	// Delegate handlers
 	void OnServerEndpointSelected(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem);
 	void OnServerAddressSelected(TSharedPtr<FSCOSCServerAddressListItem> AddressItem);
+	void OnServerSettingsSaved();
 };

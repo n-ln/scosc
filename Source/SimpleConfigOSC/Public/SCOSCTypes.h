@@ -29,7 +29,11 @@ struct FSCOSCServerConfig
 	UPROPERTY()
 	uint16 Port = 0;
 	UPROPERTY()
-	bool bEnableByDefault = false;
+	bool bIsEnabled = false;
+
+	FSCOSCServerConfig() = default;
+	FSCOSCServerConfig(const FString& InIPAddress, uint16 InPort, bool bInIsEnabled = false)
+		: IPAddress(InIPAddress), Port(InPort), bIsEnabled(bInIsEnabled) {}
 };
 
 USTRUCT()

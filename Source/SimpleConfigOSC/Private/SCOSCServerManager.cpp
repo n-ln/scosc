@@ -13,11 +13,6 @@ void USCOSCServerManager::Initialize(FSubsystemCollectionBase& Collection)
 
 	ServerSettings = GetMutableDefault<USCOSCServerSettings>();
 
-	// Temp: Add a server config to settings
-	FSCOSCServerConfig TempConfig(FString("0.0.0.0"), 38000, true);
-	ServerSettings->ServerParameters.ServerConfigs.FindOrAdd(FName("DefaultServer")) = TempConfig;
-	
-
 	// Initialize servers from settings
 	for (const TPair<FName, FSCOSCServerConfig>& Config : ServerSettings->ServerParameters.ServerConfigs)
 	{
@@ -38,7 +33,7 @@ void USCOSCServerManager::Initialize(FSubsystemCollectionBase& Collection)
 
 		SetServerEndpoint(Config.Key, Config.Value.IPAddress, Config.Value.Port);
 
-		if (Config.Value.bEnableByDefault)
+		if (Config.Value.bIsEnabled)
 		{
 			StartServer(Config.Key);
 		}
@@ -52,7 +47,10 @@ void USCOSCServerManager::Deinitialize()
 	// Stop all servers
 	for (TPair<FName, FSCOSCServerRuntimeStatus> Server : OSCServers)
 	{
-		StopServer(Server.Key);
+		if (Server.Value.OSCServer->IsActive())
+		{
+			StopServer(Server.Key);
+		}
 	}
 	
 	UE_LOG(LogTemp, Warning, TEXT("OSC Server Manager deinitialized"));

@@ -5,6 +5,7 @@
 
 #include "SlateOptMacros.h"
 #include "SPositiveActionButton.h"
+#include "SCOSCSettings.h"
 
 #define LOCTEXT_NAMESPACE "SSCOSCServerLists"
 
@@ -16,9 +17,8 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 	EndpointListItems = InArgs._EndpointListItems;
 	AddressListItems = InArgs._AddressListItems;
 
-	// Temp hard coded list for testing
-	EndpointListItems.Add(MakeShared<FSCOSCServerEndpointListItem>(FSCOSCServerEndpointListItem{ FName(TEXT("Default Server")), FSCOSCServerConfig(), false }));
-	AddressListItems.Add(MakeShared<FSCOSCServerAddressListItem>(FSCOSCServerAddressListItem{ FString(TEXT("/text")), false}));
+	// Populate from settings
+	RefreshFromSettings();
 	
 	ChildSlot
 	[
@@ -156,6 +156,36 @@ void SSCOSCServerLists::OnAddressSelectionChanged(TSharedPtr<FSCOSCServerAddress
 		OnServerAddressSelectedDelegate.ExecuteIfBound(Item);
 		
 		UE_LOG(LogTemp, Log, TEXT("Selected OSC Address: %s"), *Item->OSCAddress);
+	}
+}
+
+void SSCOSCServerLists::RefreshFromSettings()
+{
+	// Clear existing data
+	EndpointListItems.Empty();
+	AddressListItems.Empty();
+
+	// Load from settings
+	USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>();
+	if (ServerSettings)
+	{
+		for (const TPair<FName, FSCOSCServerConfig>& ServerPair : ServerSettings->ServerParameters.ServerConfigs)
+		{
+			TSharedPtr<FSCOSCServerEndpointListItem> NewEndpoint = MakeShared<FSCOSCServerEndpointListItem>(
+				ServerPair.Key, ServerPair.Value, false
+			);
+			EndpointListItems.Add(NewEndpoint);
+		}
+	}
+
+	// Refresh UI if widgets exist
+	if (EndpointListView.IsValid())
+	{
+		EndpointListView->RequestListRefresh();
+	}
+	if (AddressListView.IsValid())
+	{
+		AddressListView->RequestListRefresh();
 	}
 }
 

@@ -292,6 +292,11 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 		ServerListsWidget->OnServerEndpointSelected().BindSP(this, &SSCOSCEditorWidget::OnServerEndpointSelected);
 		ServerListsWidget->OnServerAddressSelected().BindSP(this, &SSCOSCEditorWidget::OnServerAddressSelected);
 	}
+
+	if (ServerDetailsWidget.IsValid())
+	{
+		ServerDetailsWidget->OnServerSettingsSaved().BindSP(this, &SSCOSCEditorWidget::OnServerSettingsSaved);
+	}
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetServerMainCheckState() const
@@ -382,6 +387,15 @@ void SSCOSCEditorWidget::OnServerAddressSelected(TSharedPtr<FSCOSCServerAddressL
 	if (ServerDetailsWidget.IsValid())
 	{
 		ServerDetailsWidget->SetSelectedAddress(AddressItem);
+	}
+}
+
+void SSCOSCEditorWidget::OnServerSettingsSaved()
+{
+	// Refresh the server lists to reflect saved changes
+	if (ServerListsWidget.IsValid())
+	{
+		ServerListsWidget->RefreshFromSettings();
 	}
 }
 

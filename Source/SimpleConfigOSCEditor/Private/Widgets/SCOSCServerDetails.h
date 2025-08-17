@@ -26,12 +26,39 @@ public:
 	void SetSelectedAddress(TSharedPtr<FSCOSCServerAddressListItem> AddressItem);
 	void ClearSelection();
 
+	// Delegate for notifying when settings are saved
+	DECLARE_DELEGATE(FOnServerSettingsSaved);
+	FOnServerSettingsSaved& OnServerSettingsSaved() { return OnServerSettingsSavedDelegate; }
+
 private:
 	// UI Elements
 	TSharedPtr<STextBlock> TitleTextBlock;
-	TSharedPtr<STextBlock> ContentTextBlock;
+	TSharedPtr<SVerticalBox> ContentContainer;
+
+	// Form fields for server editing
+	TSharedPtr<SEditableTextBox> ServerNameTextBox;
+	TSharedPtr<SEditableTextBox> IPAddressTextBox;
+	TSharedPtr<SEditableTextBox> PortTextBox;
+	TSharedPtr<SCheckBox> EnableByDefaultCheckBox;
+	TSharedPtr<SButton> SaveButton;
+	TSharedPtr<SButton> CancelButton;
 
 	// Current selection state
 	TSharedPtr<FSCOSCServerEndpointListItem> CurrentEndpointItem;
 	TSharedPtr<FSCOSCServerAddressListItem> CurrentAddressItem;
+
+	// Original values for cancel functionality
+	FName OriginalServerName;
+	FSCOSCServerConfig OriginalServerConfig;
+
+	// Delegate instance
+	FOnServerSettingsSaved OnServerSettingsSavedDelegate;
+
+	// Methods
+	void BuildEndpointEditForm();
+	void BuildAddressEditForm();
+	void BuildEmptyState();
+	FReply OnSaveClicked();
+	FReply OnCancelClicked();
+	void NotifyRuntimeServerManager(const FName& ServerName, const FSCOSCServerConfig& Config);
 };

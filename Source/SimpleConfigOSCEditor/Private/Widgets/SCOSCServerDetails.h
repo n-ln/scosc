@@ -64,7 +64,6 @@ private:
 	FReply OnCancelClicked(bool bIsNewItem);
 	FReply OnDeleteClicked();
 	
-	//void NotifyRuntimeServerManager(const FName& ServerName, const FSCOSCServerConfig& Config);
 	void StopRuntimeServer(const FName& ServerName);
 	void AddOrUpdateRuntimeServer(const FName& ServerName, const FSCOSCServerConfig& Config);
 };

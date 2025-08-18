@@ -209,7 +209,7 @@ void SSCOSCServerDetails::BuildEndpointEditForm(bool bIsNewItem)
 
 	ContentContainer->AddSlot()
 	.AutoHeight()
-	.Padding(0.0f, 16.0f, 0.0f, 0.0f)
+	.Padding(0.0f, 32.0f, 0.0f, 0.0f)
 	[
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
@@ -218,6 +218,7 @@ void SSCOSCServerDetails::BuildEndpointEditForm(bool bIsNewItem)
 		[
 			SAssignNew(SaveButton, SButton)
 			.Text(LOCTEXT("SaveButton", "Save"))
+			.ButtonColorAndOpacity(FSlateColor(EStyleColor::AccentBlue))
 			.OnClicked(this, &SSCOSCServerDetails::OnSaveClicked, bIsNewItem)
 		]
 		+ SHorizontalBox::Slot()
@@ -226,7 +227,12 @@ void SSCOSCServerDetails::BuildEndpointEditForm(bool bIsNewItem)
 		[
 			SAssignNew(CancelButton, SButton)
 			.Text(LOCTEXT("CancelButton", "Cancel"))
+			.ButtonColorAndOpacity(FSlateColor(EStyleColor::Panel))
 			.OnClicked(this, &SSCOSCServerDetails::OnCancelClicked, bIsNewItem)
+		]
+		+ SHorizontalBox::Slot()
+		[
+			SNew(SSpacer)
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
@@ -234,6 +240,7 @@ void SSCOSCServerDetails::BuildEndpointEditForm(bool bIsNewItem)
 		[
 			SAssignNew(CancelButton, SButton)
 			.Text(LOCTEXT("DeleteButton", "Delete"))
+			.ButtonColorAndOpacity(FSlateColor(EStyleColor::AccentRed))
 			.Visibility(bIsNewItem ? EVisibility::Hidden : EVisibility::Visible)
 			.OnClicked(this, &SSCOSCServerDetails::OnDeleteClicked)
 		]
@@ -456,32 +463,6 @@ FReply SSCOSCServerDetails::OnDeleteClicked()
 	
 	return FReply::Handled();
 }
-
-/*
-void SSCOSCServerDetails::NotifyRuntimeServerManager(const FName& ServerName, const FSCOSCServerConfig& Config)
-{
-	// Notify if game is running
-	if (GEditor && GEditor->GetPIEWorldContext())
-	{
-		USCOSCServerManager* ServerManager = GEditor->GetPIEWorldContext()->World()->GetGameInstance()->GetSubsystem<USCOSCServerManager>();
-		if (ServerManager)
-		{
-			// Update server endpoint if exists
-			if (ServerManager->GetOSCServer(ServerName))
-			{
-				ServerManager->StopServer(ServerName);
-				ServerManager->SetServerEndpoint(ServerName, Config.IPAddress, Config.Port);
-				// Start server again if set to enabled
-				if (Config.bIsEnabled)
-				{
-					ServerManager->StartServer(ServerName);
-				}
-				UE_LOG(LogTemp, Log, TEXT("Updated runtime server endpoint: %s (%s:%d)"), *ServerName.ToString(), *Config.IPAddress, Config.Port);
-			}
-		}
-	}
-}
-*/
 
 void SSCOSCServerDetails::StopRuntimeServer(const FName& ServerName)
 {

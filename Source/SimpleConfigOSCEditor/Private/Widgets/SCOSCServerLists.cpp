@@ -34,6 +34,7 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 				SNew(SVerticalBox)
 				+ SVerticalBox::Slot()
 				.AutoHeight()
+				.Padding(4.0f)
 				[
 					// Server toolbar
 					SNew(SHorizontalBox)
@@ -49,6 +50,7 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 				]
 				+ SVerticalBox::Slot()
 				.AutoHeight()
+				.Padding(0.0f)
 				[
 					// ListView
 					SAssignNew(EndpointListView, SListView<TSharedPtr<FSCOSCServerEndpointListItem>>)
@@ -64,6 +66,7 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 				SNew(SVerticalBox)
 				+ SVerticalBox::Slot()
 				.AutoHeight()
+				.Padding(4.0f)
 				[
 					// Address toolbar
 					SNew(SHorizontalBox)
@@ -79,6 +82,7 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 				]
 				+ SVerticalBox::Slot()
 				.AutoHeight()
+				.Padding(0.0f)
 				[
 					// ListView
 					SAssignNew(AddressListView, SListView<TSharedPtr<FSCOSCServerAddressListItem>>)
@@ -128,18 +132,40 @@ FReply SSCOSCServerLists::OnAddOSCAddress()
 TSharedRef<ITableRow> SSCOSCServerLists::OnGenerateEndpointRow(TSharedPtr<FSCOSCServerEndpointListItem> Item, const TSharedRef<STableViewBase>& OwnerTable) const
 {
 	return SNew(STableRow<TSharedPtr<FSCOSCServerEndpointListItem>>, OwnerTable)
+		.Padding(2.0f)
 		[
-			SNew(STextBlock)
-			.Text(FText::FromName(Item->ServerName))
+			SNew(SBorder)
+			.BorderImage(FAppStyle::GetBrush("NoBorder"))
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(8.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromName(Item->ServerName))
+				]
+			]
 		];
 }
 
 TSharedRef<ITableRow> SSCOSCServerLists::OnGenerateAddressRow(TSharedPtr<FSCOSCServerAddressListItem> Item, const TSharedRef<STableViewBase>& OwnerTable) const
 {
 	return SNew(STableRow<TSharedPtr<FSCOSCServerAddressListItem>>, OwnerTable)
+		.Padding(2.0f)
 		[
-			SNew(STextBlock)
-			.Text(FText::FromString(Item->OSCAddress))
+			SNew(SBorder)
+			.BorderImage(FAppStyle::GetBrush("NoBorder"))
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(8.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(Item->OSCAddress))
+				]
+			]
 		];
 }
 

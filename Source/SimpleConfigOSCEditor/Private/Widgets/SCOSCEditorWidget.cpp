@@ -44,6 +44,7 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 		[
 			SNew(SBorder)
 			.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Panel)))
+			.Padding(8.0f, 8.0f)
 			[
 				SNew(SHorizontalBox)
 
@@ -148,6 +149,7 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 							SNew(SHorizontalBox)
 							+ SHorizontalBox::Slot()
 							.AutoWidth()
+							.Padding(8.0f, 0.0f, 0.0f, 0.0f)
 							[
 								SNew(STextBlock)
 								.Text(LOCTEXT("EditorServerTitle", "OSC Server"))
@@ -189,6 +191,7 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 							SNew(SHorizontalBox)
 							+ SHorizontalBox::Slot()
 							.AutoWidth()
+							.Padding(8.0f, 0.0f, 0.0f, 0.0f)
 							[
 								SNew(STextBlock)
 								.Text(LOCTEXT("EditorClientTitle", "OSC Client"))

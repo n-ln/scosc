@@ -11,7 +11,7 @@
  * 
  */
 
-UCLASS(Config = PluginSettings, MinimalAPI)
+UCLASS(Config = EditorSettings, MinimalAPI)
 class USCOSCPluginSettings : public UObject
 {
 	GENERATED_BODY()
@@ -23,7 +23,7 @@ public:
 private:
 };
 
-UCLASS(Config = PluginPerProjectSettings, MinimalAPI)
+UCLASS(Config = EditorPerProjectUserSettings, MinimalAPI)
 class USCOSCProjectSettings : public UObject
 {
 	GENERATED_BODY()
@@ -38,7 +38,7 @@ public:
 private:
 };
 
-UCLASS(Config = OSCServerSettings, MinimalAPI)
+UCLASS(Config = EditorPerProjectUserSettings, MinimalAPI)
 class USCOSCServerSettings : public UObject
 {
 	GENERATED_BODY()
@@ -53,7 +53,7 @@ public:
 private:
 };
 
-UCLASS(Config = OSCClientSettings, MinimalAPI)
+UCLASS(Config = EditorPerProjectUserSettings, MinimalAPI)
 class USCOSCClientSettings : public UObject
 {
 	GENERATED_BODY()

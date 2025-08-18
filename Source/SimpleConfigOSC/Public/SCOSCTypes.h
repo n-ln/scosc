@@ -24,11 +24,11 @@ struct FSCOSCServerConfig
 {
 	GENERATED_BODY()
 	
-	UPROPERTY()
+	UPROPERTY(Config)
 	FString IPAddress = "";
-	UPROPERTY()
+	UPROPERTY(Config)
 	uint16 Port = 0;
-	UPROPERTY()
+	UPROPERTY(Config)
 	bool bIsEnabled = false;
 
 	FSCOSCServerConfig() = default;

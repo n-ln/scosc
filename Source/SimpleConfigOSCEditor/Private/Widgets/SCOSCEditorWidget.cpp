@@ -319,6 +319,8 @@ void SSCOSCEditorWidget::ToggleServerMain(ECheckBoxState CheckState)
 		GEditor->GetPIEWorldContext()->World()->GetGameInstance()->GetSubsystem<USCOSCServerManager>()
 			->ToggleServerMain(ServerSettings->ServerParameters.bEnableServerMain);
 	}
+	// Save setting
+	ServerSettings->SaveConfig();
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetClientMainCheckState() const
@@ -339,6 +341,8 @@ void SSCOSCEditorWidget::ToggleClientMain(ECheckBoxState CheckState)
 	{
 		ClientSettings->ClientParameters.bEnableClientMain = true;
 	}
+	// Save setting
+	ClientSettings->SaveConfig();
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetSettingCheckState() const

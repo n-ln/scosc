@@ -59,7 +59,12 @@ private:
 	void BuildEndpointEditForm(bool bIsNewItem);
 	void BuildAddressEditForm();
 	void BuildEmptyState();
+	
 	FReply OnSaveClicked(bool bIsNewItem);
 	FReply OnCancelClicked(bool bIsNewItem);
-	void NotifyRuntimeServerManager(const FName& ServerName, const FSCOSCServerConfig& Config);
+	FReply OnDeleteClicked();
+	
+	//void NotifyRuntimeServerManager(const FName& ServerName, const FSCOSCServerConfig& Config);
+	void StopRuntimeServer(const FName& ServerName);
+	void AddOrUpdateRuntimeServer(const FName& ServerName, const FSCOSCServerConfig& Config);
 };

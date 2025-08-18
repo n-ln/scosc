@@ -34,7 +34,7 @@ public:
 
 	// Begin OSC server functionality
 	UFUNCTION()
-	UOSCServer* CreateServer(FName ServerName);
+	bool CreateServer(FName ServerName);
 	UFUNCTION()
 	UOSCServer* GetOSCServer(FName ServerName) const;
 	UFUNCTION()

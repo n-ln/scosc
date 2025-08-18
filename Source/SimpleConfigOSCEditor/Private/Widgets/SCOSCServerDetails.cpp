@@ -222,10 +222,20 @@ void SSCOSCServerDetails::BuildEndpointEditForm(bool bIsNewItem)
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
+		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
 		[
 			SAssignNew(CancelButton, SButton)
 			.Text(LOCTEXT("CancelButton", "Cancel"))
 			.OnClicked(this, &SSCOSCServerDetails::OnCancelClicked, bIsNewItem)
+		]
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
+		[
+			SAssignNew(CancelButton, SButton)
+			.Text(LOCTEXT("DeleteButton", "Delete"))
+			.Visibility(bIsNewItem ? EVisibility::Hidden : EVisibility::Visible)
+			.OnClicked(this, &SSCOSCServerDetails::OnDeleteClicked)
 		]
 	];
 }
@@ -272,7 +282,9 @@ void SSCOSCServerDetails::BuildEmptyState()
 FReply SSCOSCServerDetails::OnSaveClicked(bool bIsNewItem)
 {
 	if (!CurrentEndpointItem.IsValid())
+	{
 		return FReply::Handled();
+	}
 
 	// Get values from form
 	FName NewServerName = FName(*ServerNameTextBox->GetText().ToString());
@@ -318,10 +330,14 @@ FReply SSCOSCServerDetails::OnSaveClicked(bool bIsNewItem)
 	// Update settings
 	if (USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>())
 	{
+		// Stop runtime server if PIE is running
+		StopRuntimeServer(OriginalServerName);
+		
 		// For existing items, remove old entry if name changed
 		// For new items, don't remove anything
 		if (!bIsNewItem && NewServerName != OriginalServerName)
 		{
+			// Remove old entry from settings
 			ServerSettings->ServerParameters.ServerConfigs.Remove(OriginalServerName);
 		}
 
@@ -329,7 +345,7 @@ FReply SSCOSCServerDetails::OnSaveClicked(bool bIsNewItem)
 		FSCOSCServerConfig NewConfig(NewIPAddress, (uint16)NewPort, bNewIsEnabled);
 		ServerSettings->ServerParameters.ServerConfigs.Add(NewServerName, NewConfig);
 
-		// Save to disk
+		// Save config
 		ServerSettings->SaveConfig();
 
 		// Existing endpoint
@@ -362,8 +378,8 @@ FReply SSCOSCServerDetails::OnSaveClicked(bool bIsNewItem)
 			OnServerSettingsSavedDelegate.ExecuteIfBound(false /*bIsNewItem*/);
 		}
 		
-		// Notify server manager if game is running
-		NotifyRuntimeServerManager(NewServerName, NewConfig);
+		// Update runtime server if PIE is running
+		AddOrUpdateRuntimeServer(NewServerName, NewConfig);
 
 		UE_LOG(LogTemp, Log, TEXT("Saved OSC Server: %s (%s:%d)"), *NewServerName.ToString(), *NewIPAddress, NewPort);
 	}
@@ -374,7 +390,9 @@ FReply SSCOSCServerDetails::OnSaveClicked(bool bIsNewItem)
 FReply SSCOSCServerDetails::OnCancelClicked(bool bIsNewItem)
 {
 	if (!CurrentEndpointItem.IsValid())
+	{
 		return FReply::Handled();
+	}
 
 	if (bIsNewItem)
 	{
@@ -409,6 +427,37 @@ FReply SSCOSCServerDetails::OnCancelClicked(bool bIsNewItem)
 	return FReply::Handled();
 }
 
+FReply SSCOSCServerDetails::OnDeleteClicked()
+{
+	if (!CurrentEndpointItem.IsValid())
+	{
+		return FReply::Handled();
+	}
+
+	// Stop server if PIE is running
+	StopRuntimeServer(OriginalServerName);
+
+	// Update settings
+	if (USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>())
+	{
+		ServerSettings->ServerParameters.ServerConfigs.Remove(OriginalServerName);
+
+		// Save config
+		ServerSettings->SaveConfig();
+
+		// Execute delegate to update server list
+		OnServerSettingsSavedDelegate.ExecuteIfBound(false /*bIsNewItem*/);
+
+		// Return to empty state
+		ClearSelection();
+		
+		UE_LOG(LogTemp, Log, TEXT("Deleted OSC Server: %s"), *OriginalServerName.ToString());
+	}
+	
+	return FReply::Handled();
+}
+
+/*
 void SSCOSCServerDetails::NotifyRuntimeServerManager(const FName& ServerName, const FSCOSCServerConfig& Config)
 {
 	// Notify if game is running
@@ -429,6 +478,67 @@ void SSCOSCServerDetails::NotifyRuntimeServerManager(const FName& ServerName, co
 				}
 				UE_LOG(LogTemp, Log, TEXT("Updated runtime server endpoint: %s (%s:%d)"), *ServerName.ToString(), *Config.IPAddress, Config.Port);
 			}
+		}
+	}
+}
+*/
+
+void SSCOSCServerDetails::StopRuntimeServer(const FName& ServerName)
+{
+	if (!GEditor || !GEditor->GetPIEWorldContext())
+	{
+		return;
+	}
+
+	USCOSCServerManager* ServerManager = GEditor->GetPIEWorldContext()->World()->GetGameInstance()->GetSubsystem<USCOSCServerManager>();
+	if (ServerManager)
+	{
+		// Stop server endpoint
+		if (ServerManager->GetOSCServer(ServerName))
+		{
+			ServerManager->StopServer(ServerName);
+			UE_LOG(LogTemp, Log, TEXT("Removed runtime server endpoint: %s"), *ServerName.ToString());
+		}
+	}
+}
+
+void SSCOSCServerDetails::AddOrUpdateRuntimeServer(const FName& ServerName, const FSCOSCServerConfig& Config)
+{
+	if (!GEditor || !GEditor->GetPIEWorldContext())
+	{
+		return;
+	}
+
+	USCOSCServerManager* ServerManager = GEditor->GetPIEWorldContext()->World()->GetGameInstance()->GetSubsystem<USCOSCServerManager>();
+	if (ServerManager)
+	{
+		// Update server endpoint if exists
+		if (ServerManager->GetOSCServer(ServerName))
+		{
+			ServerManager->SetServerEndpoint(ServerName, Config.IPAddress, Config.Port);
+			// Start server again if set to enabled
+			if (Config.bIsEnabled)
+			{
+				ServerManager->StartServer(ServerName);
+			}
+			UE_LOG(LogTemp, Log, TEXT("Updated runtime server endpoint: %s (%s:%d)"), *ServerName.ToString(), *Config.IPAddress, Config.Port);
+		}
+		// Create new server if it doesn't exist
+		else
+		{
+			if (!ServerManager->CreateServer(ServerName))
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to create OSC Server: %s"), *ServerName.ToString());
+				return;
+			}
+			
+			ServerManager->SetServerEndpoint(ServerName, Config.IPAddress, Config.Port);
+			// Start server again if set to enabled
+			if (Config.bIsEnabled)
+			{
+				ServerManager->StartServer(ServerName);
+			}
+			UE_LOG(LogTemp, Log, TEXT("Added runtime server endpoint: %s (%s:%d)"), *ServerName.ToString(), *Config.IPAddress, Config.Port);
 		}
 	}
 }

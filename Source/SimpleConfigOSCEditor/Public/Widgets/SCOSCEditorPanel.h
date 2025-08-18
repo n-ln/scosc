@@ -16,14 +16,14 @@ public:
 		SLATE_ARGUMENT(FText, DetailsTitle)
 		SLATE_ARGUMENT(TSharedPtr<TArray<TSharedPtr<FString>>>, ListSource)
 		SLATE_NAMED_SLOT(FArguments, ToolBar)
+		SLATE_NAMED_SLOT(FArguments, ListContent)
 		SLATE_NAMED_SLOT(FArguments, DetailsContent)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
 
 private:
-	// Configuration
-	FText ListTitle;
-	FText DetailsTitle;
-	TSharedPtr<TArray<TSharedPtr<FString>>> ListSource;
+	// Widget references
+	TAlwaysValidWidget ListContent;
+	TAlwaysValidWidget DetailsContent;
 };

@@ -16,6 +16,10 @@
 #include "Styling/StyleDefaults.h"
 
 #include "EditorFontGlyphs.h"
+#include "SCOSCServerDetails.h"
+#include "SCOSCServerLists.h"
+#include "SCOSCServerManager.h"
+#include "SCOSCSettings.h"
 #include "./Widgets/SCOSCEditorPanel.h"
 
 #define LOCTEXT_NAMESPACE "SSCOSCEditorWidget"
@@ -29,10 +33,7 @@ SSCOSCEditorWidget::~SSCOSCEditorWidget()
 
 void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 {
-	// Input arguments
-	OSCAddressList = InArgs._OSCAddressList;
-	OSCDestinationList = InArgs._OSCDestinationList;
-
+	
 	ChildSlot
 	[
 		SNew(SVerticalBox)
@@ -42,8 +43,8 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 		.Padding(0.f)
 		[
 			SNew(SBorder)
-			//.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
 			.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Panel)))
+			.Padding(8.0f, 8.0f)
 			[
 				SNew(SHorizontalBox)
 
@@ -135,7 +136,6 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 			[
 				// OSC Server
 				SNew(SBorder)
-				//.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
 				.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Panel)))
 				[
 					SNew(SVerticalBox)
@@ -144,12 +144,12 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 					.HAlign(HAlign_Fill)
 					[
 						SNew(SBorder)
-						//.BorderImage(new FSlateColorBrush(FLinearColor(FColor(47, 47, 47))))
 						.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Secondary)))
 						[
 							SNew(SHorizontalBox)
 							+ SHorizontalBox::Slot()
 							.AutoWidth()
+							.Padding(8.0f, 0.0f, 0.0f, 0.0f)
 							[
 								SNew(STextBlock)
 								.Text(LOCTEXT("EditorServerTitle", "OSC Server"))
@@ -162,49 +162,13 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 					.Padding(0.f, 4.f, 0.f, 0.f)
 					[
 						SNew(SSCOSCEditorPanel)
-						.ListTitle(LOCTEXT("EditorAddrList", "OSC Address List"))
-						.DetailsTitle(LOCTEXT("EditorServerDetail", "OSC Server Details"))
-						.ListSource(OSCAddressList)
-						.ToolBar()
+						.ListContent()
 						[
-							SNew(SHorizontalBox)
-							+ SHorizontalBox::Slot()
-							.AutoWidth()
-							[
-								SNew(SPositiveActionButton)
-								//.OnGetMenuContent(this, &SSCOSCEditorWidget::OnAddOSCSourceAddress)
-								.OnClicked(this, &SSCOSCEditorWidget::OnAddOSCSourceAddress)
-								.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
-								.Text(LOCTEXT("AddNewServerAddress", "OSC Source"))
-							]
+							SAssignNew(ServerListsWidget, SSCOSCServerLists)
 						]
 						.DetailsContent()
 						[
-							SNew(SScrollBox)
-							+ SScrollBox::Slot()
-							[
-								SNew(SVerticalBox)
-								+ SVerticalBox::Slot()
-								.AutoHeight()
-								.Padding(0.f, 4.f)
-								[
-									SNew(SHorizontalBox)
-									+ SHorizontalBox::Slot()
-									.AutoWidth()
-									.VAlign(VAlign_Center)
-									.Padding(0.f, 0.f, 8.f, 0.f)
-									[
-										SNew(STextBlock)
-										.Text(LOCTEXT("ServerPort", "Port:"))
-									]
-									+ SHorizontalBox::Slot()
-									.FillWidth(1.f)
-									[
-										SNew(SEditableTextBox)
-										.Text(FText::FromString("8000"))
-									]
-								]
-							]
+							SAssignNew(ServerDetailsWidget, SSCOSCServerDetails)
 						]
 					]
 				]
@@ -213,7 +177,6 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 			.Value(0.5f)
 			[
 				SNew(SBorder)
-				//.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
 				.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Panel)))
 				[
 					// OSC Client
@@ -223,12 +186,12 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 					.HAlign(HAlign_Fill)
 					[
 						SNew(SBorder)
-						//.BorderImage(new FSlateColorBrush(FLinearColor(FColor(47, 47, 47))))
 						.BorderImage(new FSlateColorBrush(FSlateColor(EStyleColor::Secondary)))
 						[
 							SNew(SHorizontalBox)
 							+ SHorizontalBox::Slot()
 							.AutoWidth()
+							.Padding(8.0f, 0.0f, 0.0f, 0.0f)
 							[
 								SNew(STextBlock)
 								.Text(LOCTEXT("EditorClientTitle", "OSC Client"))
@@ -241,9 +204,6 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 					.Padding(0.f, 4.f, 0.f, 0.f)
 					[
 						SNew(SSCOSCEditorPanel)
-						.ListTitle(LOCTEXT("EditorDestList", "OSC Destination List"))
-						.DetailsTitle(LOCTEXT("EditorClientDetail", "OSC Client Details"))
-						.ListSource(OSCDestinationList)
 						.ToolBar()
 						[
 							SNew(SHorizontalBox)
@@ -328,47 +288,87 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 			]
 		]
 	];
+
+	// Bind delegates after widget creation
+	if (ServerListsWidget.IsValid())
+	{
+		// New creation
+		ServerListsWidget->OnServerEndpointCreateNew().BindSP(this, &SSCOSCEditorWidget::OnServerEndpointCreateNew);
+		// Existing
+		ServerListsWidget->OnServerEndpointSelected().BindSP(this, &SSCOSCEditorWidget::OnServerEndpointSelected);
+		ServerListsWidget->OnServerAddressSelected().BindSP(this, &SSCOSCEditorWidget::OnServerAddressSelected);
+	}
+
+	if (ServerDetailsWidget.IsValid())
+	{
+		ServerDetailsWidget->OnServerSettingsSaved().BindSP(this, &SSCOSCEditorWidget::OnServerSettingsSaved);
+	}
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetServerMainCheckState() const
 {
-	return bEnableServerMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	return GetDefault<USCOSCServerSettings>()->ServerParameters.bEnableServerMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
 void SSCOSCEditorWidget::ToggleServerMain(ECheckBoxState CheckState)
 {
-	// Placeholder toggling OSC Server on/off
-	bEnableServerMain = !bEnableServerMain;
+	USCOSCServerSettings* ServerSettings = GetMutableDefault<USCOSCServerSettings>();
+
+	ServerSettings->ServerParameters.bEnableServerMain = !ServerSettings->ServerParameters.bEnableServerMain;
+	
+	if (GEditor && GEditor->GetPIEWorldContext())
+	{
+		// If in PIE, toggle the servers
+		GEditor->GetPIEWorldContext()->World()->GetGameInstance()->GetSubsystem<USCOSCServerManager>()
+			->ToggleServerMain(ServerSettings->ServerParameters.bEnableServerMain);
+	}
+	// Save setting
+	ServerSettings->SaveConfig();
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetClientMainCheckState() const
 {
-	return bEnableClientMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	return GetDefault<USCOSCClientSettings>()->ClientParameters.bEnableClientMain ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
 void SSCOSCEditorWidget::ToggleClientMain(ECheckBoxState CheckState)
 {
-	// Placeholder toggling OSC Client on/off
-	bEnableClientMain = !bEnableClientMain;
+	USCOSCClientSettings* ClientSettings = GetMutableDefault<USCOSCClientSettings>();
+	
+	// Simply flip the bool without check for now
+	if (ClientSettings->ClientParameters.bEnableClientMain == true)
+	{
+		ClientSettings->ClientParameters.bEnableClientMain = false;
+	}
+	else
+	{
+		ClientSettings->ClientParameters.bEnableClientMain = true;
+	}
+	// Save setting
+	ClientSettings->SaveConfig();
 }
 
 ECheckBoxState SSCOSCEditorWidget::GetSettingCheckState() const
 {
-	return bShowUserSettings ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	return GetDefault<USCOSCProjectSettings>()->ProjectParameters.bShowUserSettings ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
 void SSCOSCEditorWidget::ToggleSetting(ECheckBoxState CheckState)
 {
-	// Placeholder for toggling settings panel
-	bShowUserSettings = !bShowUserSettings;
-}
-
-FReply SSCOSCEditorWidget::OnAddOSCSourceAddress()
-{
-	// Placeholder for adding new OSC server address
-	UE_LOG(LogTemp, Warning, TEXT("OSC Server new address clicked"));
-
-	return FReply::Handled();
+	USCOSCProjectSettings* ProjectSettings = GetMutableDefault<USCOSCProjectSettings>();
+	
+	// Simply flip the bool without check for now
+	if (ProjectSettings->ProjectParameters.bShowUserSettings == true)
+	{
+		ProjectSettings->ProjectParameters.bShowUserSettings = false;
+	}
+	else
+	{
+		ProjectSettings->ProjectParameters.bShowUserSettings = true;
+	}
+	
+	// TODO: Save the settings
+	//ProjectSettings->SaveConfig();
 }
 
 FReply SSCOSCEditorWidget::OnAddOSCDestinationAddress()
@@ -377,6 +377,45 @@ FReply SSCOSCEditorWidget::OnAddOSCDestinationAddress()
 	UE_LOG(LogTemp, Warning, TEXT("OSC Client new address clicked"));
 
 	return FReply::Handled();
+}
+
+void SSCOSCEditorWidget::OnServerEndpointCreateNew(TSharedPtr<FSCOSCServerEndpointListItem> NewEndpointItem)
+{
+	if (ServerDetailsWidget.IsValid())
+	{
+		ServerDetailsWidget->SetSelectedEndpoint(NewEndpointItem, true);
+	}
+}
+
+void SSCOSCEditorWidget::OnServerEndpointSelected(TSharedPtr<FSCOSCServerEndpointListItem> EndpointItem)
+{
+	if (ServerDetailsWidget.IsValid())
+	{
+		ServerDetailsWidget->SetSelectedEndpoint(EndpointItem, false);
+	}
+}
+
+void SSCOSCEditorWidget::OnServerAddressSelected(TSharedPtr<FSCOSCServerAddressListItem> AddressItem)
+{
+	if (ServerDetailsWidget.IsValid())
+	{
+		ServerDetailsWidget->SetSelectedAddress(AddressItem);
+	}
+}
+
+void SSCOSCEditorWidget::OnServerSettingsSaved(bool bIsNewItem)
+{
+	// Refresh the server lists to reflect saved changes
+	if (ServerListsWidget.IsValid())
+	{
+		ServerListsWidget->RefreshFromSettings();
+	}
+
+	if (bIsNewItem)
+	{
+		// TODO auto set selected list item to the newly created one
+		
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

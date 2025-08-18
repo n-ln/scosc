@@ -11,76 +11,169 @@ void USCOSCServerManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	//TODO: Should add auto start logic?
-	bIsListening = false;
+	ServerSettings = GetMutableDefault<USCOSCServerSettings>();
 
-	//Create OSC Server
-	OSCServer = NewObject<UOSCServer>(this, FName("OSCServer"));
-	//UE_LOG(LogTemp, Warning, TEXT("Outer object: %s"), *OSCServer->GetOuter()->GetName());
-	OSCServer->SetAddress(ListenAddress, ListenPort);
-	SetServerPort(ListenPort);
-	StartServer();
+	// Initialize servers from settings
+	for (const TPair<FName, FSCOSCServerConfig>& Config : ServerSettings->ServerParameters.ServerConfigs)
+	{
+		if (CreateServer(Config.Key))
+		{
+			SetServerEndpoint(Config.Key, Config.Value.IPAddress, Config.Value.Port);
+		}
+	}
 
-	// Bind to OnOscMessageReceived
-	OSCServer->OnOscMessageReceived.AddDynamic(this, &USCOSCServerManager::HandleReceivedMessage);
-
+	// Start enabled server if main toggle is enabled
+	ToggleServerMain(ServerSettings->ServerParameters.bEnableServerMain);
+	
 	UE_LOG(LogTemp, Warning, TEXT("OSC Server Manager initialized"));
 }
 
 void USCOSCServerManager::Deinitialize()
 {
-	StopServer();
+	// Stop all servers
+	for (TPair<FName, FSCOSCServerRuntimeStatus> Server : OSCServers)
+	{
+		if (Server.Value.OSCServer->IsActive())
+		{
+			StopServer(Server.Key);
+		}
+	}
 	
 	UE_LOG(LogTemp, Warning, TEXT("OSC Server Manager deinitialized"));
 	
 	Super::Deinitialize();
 }
 
-void USCOSCServerManager::StartServer()
+bool USCOSCServerManager::CreateServer(FName ServerName)
 {
-	if (OSCServer)
+	if (OSCServers.Contains(ServerName))
 	{
-		OSCServer->Listen();
-		bIsListening = true;
-		UE_LOG(LogTemp, Warning, TEXT("OSC Server started on %s:%d"), *ListenAddress, ListenPort);
+		UE_LOG(LogTemp, Error, TEXT("OSC Server %s already exists"), *ServerName.ToString());
+		return false;
 	}
-	else
+	
+	UOSCServer* NewOSCServer = NewObject<UOSCServer>(this, ServerName);
+
+	if (!NewOSCServer)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OSC Server not initialized"));
+		UE_LOG(LogTemp, Error, TEXT("Cannot create OSC Server %s"), *ServerName.ToString());
+		return false;
 	}
+
+	// Bind to OnOscMessageReceived
+	NewOSCServer->OnOscMessageReceived.AddDynamic(this, &USCOSCServerManager::HandleReceivedMessage);
+
+	FSCOSCServerRuntimeStatus NewServerStatus(NewOSCServer, false);
+	OSCServers.Add(ServerName, NewServerStatus);
+
+	UE_LOG(LogTemp, Warning, TEXT("Created OSC Server: %s"), *ServerName.ToString());
+	return true;
 }
 
-void USCOSCServerManager::StopServer()
+UOSCServer* USCOSCServerManager::GetOSCServer(FName ServerName) const
 {
-	if (OSCServer)
-	{
-		OSCServer->Stop();
-		bIsListening = false;
-		UE_LOG(LogTemp, Warning, TEXT("OSC Server stopped"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("OSC Server not initialized"));
-	}
+	return OSCServers.FindRef(ServerName).OSCServer;
 }
 
-void USCOSCServerManager::SetServerPort(const uint16 Port)
+void USCOSCServerManager::StartServer(FName ServerName)
 {
-	ListenPort = Port;
-	if (OSCServer)
+	FSCOSCServerRuntimeStatus* Server = OSCServers.Find(ServerName);
+	if (!Server)
 	{
-		OSCServer->SetAddress(ListenAddress, ListenPort);
-		UE_LOG(LogTemp, Warning, TEXT("OSC Server port set to %d"), ListenPort);
+		UE_LOG(LogTemp, Warning, TEXT("OSC Server %s not found"), *ServerName.ToString());
+		return;
+	}
+	if (Server->OSCServer->IsActive())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OSC Server %s is already started"), *ServerName.ToString());
+		Server->bIsListening = true;
+		return;
+	}
+	Server->OSCServer->Listen();
+	if (!Server->OSCServer->IsActive())
+	{
+		UE_LOG(LogTemp, Error, TEXT("OSC Server %s failed to start"), *ServerName.ToString());
+		return;
+	}
+	Server->bIsListening = true;
+	const FSCOSCServerConfig Config = ServerSettings->ServerParameters.ServerConfigs.FindRef(ServerName);
+	UE_LOG(LogTemp, Warning, TEXT("OSC Server %s started on %s:%d"), *ServerName.ToString(), *Config.IPAddress, Config.Port);
+}
+
+void USCOSCServerManager::StopServer(FName ServerName)
+{
+	FSCOSCServerRuntimeStatus* Server = OSCServers.Find(ServerName);
+	if (!Server)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OSC Server %s not found"), *ServerName.ToString());
+		return;
+	}
+	if (!Server->OSCServer->IsActive())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OSC Server %s is already stopped"), *ServerName.ToString());
+		Server->bIsListening = false;
+		return;
+	}
+	Server->OSCServer->Stop();
+	if (Server->OSCServer->IsActive())
+	{
+		UE_LOG(LogTemp, Error, TEXT("OSC Server %s failed to stop"), *ServerName.ToString());
+		return;
+	}
+	Server->bIsListening = false;
+	UE_LOG(LogTemp, Warning, TEXT("OSC Server %s stopped"), *ServerName.ToString());
+}
+
+void USCOSCServerManager::SetServerEndpoint(FName ServerName, const FString& Address, uint16 Port)
+{
+	FSCOSCServerRuntimeStatus* Server = OSCServers.Find(ServerName);
+	if (!Server)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OSC Server %s not found"), *ServerName.ToString());
+		return;
+	}
+	Server->OSCServer->SetAddress(Address, Port);
+	if (Server->OSCServer->GetIpAddress(false) == Address && Server->OSCServer->GetPort() == Port)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OSC Server %s endpoint set to %s:%d"), *ServerName.ToString(), *Address, Port);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OSC Server not initialized"));
+		UE_LOG(LogTemp, Error, TEXT("Failed to set OSC Server %s endpoint"), *ServerName.ToString());
 	}
 }
 
 void USCOSCServerManager::HandleReceivedMessage(const FOSCMessage& Message, const FString& IPAddress, const int32 Port)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Received OSC Message: %s from %s:%d"), *Message.GetAddress().GetFullPath(), *IPAddress, Port);
+}
+
+void USCOSCServerManager::ToggleServerMain(bool bEnable)
+{
+	if (bEnable)
+	{
+		// Start server if set to enabled in settings
+		for (TPair<FName, FSCOSCServerRuntimeStatus> Server : OSCServers)
+		{
+			FSCOSCServerConfig Config = ServerSettings->ServerParameters.ServerConfigs.FindRef(Server.Key);
+			if (Config.bIsEnabled)
+			{
+				StartServer(Server.Key);
+			}
+			else
+			{
+				StopServer(Server.Key);
+			}
+		}
+	}
+	else
+	{
+		// Stop all servers
+		for (TPair<FName, FSCOSCServerRuntimeStatus> Server : OSCServers)
+		{
+			StopServer(Server.Key);
+		}
+	}
 }
 
 void USCOSCServerManager::RegisterListener(UObject* Object, const TArray<FString>& ListenAddresses)

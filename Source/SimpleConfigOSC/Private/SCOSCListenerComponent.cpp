@@ -32,8 +32,6 @@ void USCOSCListenerComponent::BeginPlay()
 			// Temp: Register this component as a universal listener
 			TArray<FString> Addresses = {TEXT("*")};
 			ServerManager->RegisterListener(this, Addresses);
-			UE_LOG(LogTemp, Warning, TEXT("Registered listener: %s"), 
-				*GetOwner()->GetName());
 		}
 		else
 		{
@@ -54,8 +52,6 @@ void USCOSCListenerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		TArray<FString> Addresses = {TEXT("*")};
 		ServerManager->UnregisterListener(this, Addresses);
-		UE_LOG(LogTemp, Warning, TEXT("Registered listener: %s"), 
-			*GetOwner()->GetName());
 	}
 	
 	Super::EndPlay(EndPlayReason);
@@ -107,6 +103,6 @@ void USCOSCListenerComponent::OnOSCMessageReceived(const TArray<UE::OSC::FOSCDat
 	// Call Blueprint event
 	OnIncomingOSCFloats.Broadcast(Address, FloatData);
 	
-	UE_LOG(LogTemp, Warning, TEXT("OSC Message Received at %s - Address: %s, Float values: %d"), 
-		*GetOwner()->GetName(), *Address, FloatData.Num());
+	//UE_LOG(LogTemp, Log, TEXT("OSC Message Received at %s - Address: %s, Float values: %d"), 
+	//	*GetOwner()->GetName(), *Address, FloatData.Num());
 }

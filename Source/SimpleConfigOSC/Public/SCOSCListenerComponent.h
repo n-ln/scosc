@@ -56,7 +56,7 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnIncomingOSCFloats, const FString&, Address, const TArray<float>&, OSCFloatData);
 	UPROPERTY(BlueprintAssignable)
 	FOnIncomingOSCFloats OnIncomingOSCFloats;
-	
+	/*
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnIncomingOSCIntegers, const FString&, Address, const TArray<int32>&, OSCIntegerData);
 	UPROPERTY(BlueprintAssignable)
 	FOnIncomingOSCIntegers OnIncomingOSCIntegers;
@@ -64,4 +64,5 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnIncomingOSCStrings, const FString&, Address, const TArray<FString>&, OSCStringData);
 	UPROPERTY(BlueprintAssignable)
 	FOnIncomingOSCStrings OnIncomingOSCStrings;
+	*/
 };

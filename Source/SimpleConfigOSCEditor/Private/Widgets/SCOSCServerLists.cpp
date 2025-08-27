@@ -59,6 +59,7 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 					.OnSelectionChanged(this, &SSCOSCServerLists::OnEndpointSelectionChanged)
 				]
 			]
+			/*
 			+ SSplitter::Slot()
 			.Value(0.6f)
 			[
@@ -91,6 +92,7 @@ void SSCOSCServerLists::Construct(const FArguments& InArgs)
 					.OnSelectionChanged(this, &SSCOSCServerLists::OnAddressSelectionChanged)
 				]
 			]
+			*/
 		]
 	]; 
 }
@@ -116,7 +118,7 @@ FReply SSCOSCServerLists::OnAddOSCEndpoint()
 	// Fire delegate
 	OnServerEndpointCreateNewDelegate.ExecuteIfBound(NewItem);
 	
-	UE_LOG(LogTemp, Warning, TEXT("Creating OSC Server new endpoint"));
+	UE_LOG(LogTemp, Log, TEXT("Creating OSC Server new endpoint"));
 
 	return FReply::Handled();
 }
@@ -182,7 +184,7 @@ void SSCOSCServerLists::OnEndpointSelectionChanged(TSharedPtr<FSCOSCServerEndpoi
 		// Fire delegate
 		OnServerEndpointSelectedDelegate.ExecuteIfBound(Item);
 		
-		UE_LOG(LogTemp, Log, TEXT("Selected OSC Server: %s"), *Item->ServerName.ToString());
+		//UE_LOG(LogTemp, Log, TEXT("Selected OSC Server: %s"), *Item->ServerName.ToString());
 	}
 }
 

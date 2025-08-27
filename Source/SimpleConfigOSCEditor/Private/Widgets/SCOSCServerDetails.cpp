@@ -429,7 +429,7 @@ FReply SSCOSCServerDetails::OnCancelClicked(bool bIsNewItem)
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("Cancelled changes to OSC Server: %s"), *OriginalServerName.ToString());
+	//UE_LOG(LogTemp, Log, TEXT("Cancelled changes to OSC Server: %s"), *OriginalServerName.ToString());
 
 	return FReply::Handled();
 }

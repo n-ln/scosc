@@ -75,7 +75,7 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 						]
 					]
 				]
-
+				/*
 				+ SHorizontalBox::Slot()
 				.AutoWidth()
 				.Padding(8.f, 0.f, 0.f, 0.f)
@@ -104,7 +104,7 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 						]
 					]
 				]
-
+				
 				+ SHorizontalBox::Slot()
 				[
 					SNew(SSpacer)
@@ -123,6 +123,7 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 						.Text(FEditorFontGlyphs::Cogs)
 					]
 				]
+				*/
 			]
 		]
 
@@ -173,6 +174,7 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 					]
 				]
 			]
+			/*
 			+ SSplitter::Slot()
 			.Value(0.5f)
 			[
@@ -267,8 +269,9 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 					]
 				]
 			]
+			*/
 		]
-
+		/*
 		// OSC Status
 		+ SVerticalBox::Slot()
 		.AutoHeight()
@@ -287,6 +290,7 @@ void SSCOSCEditorWidget::Construct(const FArguments& InArgs)
 				]
 			]
 		]
+		*/
 	];
 
 	// Bind delegates after widget creation

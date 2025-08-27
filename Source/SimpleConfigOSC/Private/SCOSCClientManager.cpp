@@ -36,7 +36,7 @@ void USCOSCClientManager::Deinitialize()
 
 UOSCClient* USCOSCClientManager::CreateClient(const FName ClientName, const FString& IPAddress, const uint16 Port)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Creating OSC Client: %s at %s:%d"), *ClientName.ToString(), *IPAddress, Port);
+	UE_LOG(LogTemp, Log, TEXT("Creating OSC Client: %s at %s:%d"), *ClientName.ToString(), *IPAddress, Port);
 
 	//Create OSC Client
 	UOSCClient* NewOSCClient = NewObject<UOSCClient>(this, ClientName);
@@ -54,7 +54,7 @@ UOSCClient* USCOSCClientManager::CreateClient(const FName ClientName, const FStr
 
 void USCOSCClientManager::DestroyClient(const FName ClientName)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Destroying OSC Client: %s"), *ClientName.ToString());
+	UE_LOG(LogTemp, Log, TEXT("Destroying OSC Client: %s"), *ClientName.ToString());
 
 	UOSCClient* Client = OSCClients.FindRef(ClientName);
 	if (!Client)
@@ -68,7 +68,7 @@ void USCOSCClientManager::DestroyClient(const FName ClientName)
 
 void USCOSCClientManager::SetClientDestination(const FName ClientName, const FString& IPAddress, const uint16 Port)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Setting OSC Client %s destination to %s:%d"), *ClientName.ToString(), *IPAddress, Port);
+	UE_LOG(LogTemp, Log, TEXT("Setting OSC Client %s destination to %s:%d"), *ClientName.ToString(), *IPAddress, Port);
 
 	UOSCClient* Client = OSCClients.FindRef(ClientName);
 	if (!Client)
@@ -82,7 +82,7 @@ void USCOSCClientManager::SetClientDestination(const FName ClientName, const FSt
 		UE_LOG(LogTemp, Warning, TEXT("Failed to set OSC Client %s destination to %s:%d"), *ClientName.ToString(), *IPAddress, Port);
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("OSC Client %s destination set to %s:%d"), *ClientName.ToString(), *IPAddress, Port);
+	UE_LOG(LogTemp, Log, TEXT("OSC Client %s destination set to %s:%d"), *ClientName.ToString(), *IPAddress, Port);
 }
 
 void USCOSCClientManager::SendOSCMessage(const FName ClientName, const FString& Address, const TArray<float>& Message)

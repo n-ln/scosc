@@ -25,7 +25,7 @@ void USCOSCServerManager::Initialize(FSubsystemCollectionBase& Collection)
 	// Start enabled server if main toggle is enabled
 	ToggleServerMain(ServerSettings->ServerParameters.bEnableServerMain);
 	
-	UE_LOG(LogTemp, Warning, TEXT("OSC Server Manager initialized"));
+	UE_LOG(LogTemp, Log, TEXT("OSC Server Manager initialized"));
 }
 
 void USCOSCServerManager::Deinitialize()
@@ -39,7 +39,7 @@ void USCOSCServerManager::Deinitialize()
 		}
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("OSC Server Manager deinitialized"));
+	UE_LOG(LogTemp, Log, TEXT("OSC Server Manager deinitialized"));
 	
 	Super::Deinitialize();
 }
@@ -66,7 +66,7 @@ bool USCOSCServerManager::CreateServer(FName ServerName)
 	FSCOSCServerRuntimeStatus NewServerStatus(NewOSCServer, false);
 	OSCServers.Add(ServerName, NewServerStatus);
 
-	UE_LOG(LogTemp, Warning, TEXT("Created OSC Server: %s"), *ServerName.ToString());
+	UE_LOG(LogTemp, Log, TEXT("Created OSC Server: %s"), *ServerName.ToString());
 	return true;
 }
 
@@ -97,7 +97,7 @@ void USCOSCServerManager::StartServer(FName ServerName)
 	}
 	Server->bIsListening = true;
 	const FSCOSCServerConfig Config = ServerSettings->ServerParameters.ServerConfigs.FindRef(ServerName);
-	UE_LOG(LogTemp, Warning, TEXT("OSC Server %s started on %s:%d"), *ServerName.ToString(), *Config.IPAddress, Config.Port);
+	UE_LOG(LogTemp, Log, TEXT("OSC Server %s started on %s:%d"), *ServerName.ToString(), *Config.IPAddress, Config.Port);
 }
 
 void USCOSCServerManager::StopServer(FName ServerName)
@@ -121,7 +121,7 @@ void USCOSCServerManager::StopServer(FName ServerName)
 		return;
 	}
 	Server->bIsListening = false;
-	UE_LOG(LogTemp, Warning, TEXT("OSC Server %s stopped"), *ServerName.ToString());
+	UE_LOG(LogTemp, Log, TEXT("OSC Server %s stopped"), *ServerName.ToString());
 }
 
 void USCOSCServerManager::SetServerEndpoint(FName ServerName, const FString& Address, uint16 Port)
@@ -135,7 +135,7 @@ void USCOSCServerManager::SetServerEndpoint(FName ServerName, const FString& Add
 	Server->OSCServer->SetAddress(Address, Port);
 	if (Server->OSCServer->GetIpAddress(false) == Address && Server->OSCServer->GetPort() == Port)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OSC Server %s endpoint set to %s:%d"), *ServerName.ToString(), *Address, Port);
+		UE_LOG(LogTemp, Log, TEXT("OSC Server %s endpoint set to %s:%d"), *ServerName.ToString(), *Address, Port);
 	}
 	else
 	{
@@ -145,7 +145,7 @@ void USCOSCServerManager::SetServerEndpoint(FName ServerName, const FString& Add
 
 void USCOSCServerManager::HandleReceivedMessage(const FOSCMessage& Message, const FString& IPAddress, const int32 Port)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Received OSC Message: %s from %s:%d"), *Message.GetAddress().GetFullPath(), *IPAddress, Port);
+	//UE_LOG(LogTemp, Log, TEXT("Received OSC Message: %s from %s:%d"), *Message.GetAddress().GetFullPath(), *IPAddress, Port);
 
 	// Get OSC address and data
 	const FString& Address = Message.GetAddress().GetFullPath();
@@ -166,8 +166,8 @@ void USCOSCServerManager::HandleReceivedMessage(const FOSCMessage& Message, cons
 				}
 			}
 		}
-		UE_LOG(LogTemp, Warning, TEXT("Broadcasted OSC message to listener %d"),
-			Listeners->Num());
+		//UE_LOG(LogTemp, Log, TEXT("Broadcasted OSC message to listener %d"),
+		//	Listeners->Num());
 	}
 }
 
@@ -209,7 +209,7 @@ void USCOSCServerManager::RegisterListener(UObject* Object, const TArray<FString
 		}
 		OSCListeners.Find(Address)->AddUnique(Object);
 
-		UE_LOG(LogTemp, Warning, TEXT("Registering listener %s for address: %s"), *Object->GetName(), *Address);
+		UE_LOG(LogTemp, Log, TEXT("Registering listener %s for address: %s"), *Object->GetName(), *Address);
 	}
 }
 
@@ -229,7 +229,7 @@ void USCOSCServerManager::UnregisterListener(UObject* Object, const TArray<FStri
 		}
 
 		OSCListeners.Find(Address)->Remove(Object);
-		UE_LOG(LogTemp, Warning, TEXT("Unregistered listener %s for address: %s"), *Object->GetName(), *Address);
+		UE_LOG(LogTemp, Log, TEXT("Unregistered listener %s for address: %s"), *Object->GetName(), *Address);
 	}
 }
 

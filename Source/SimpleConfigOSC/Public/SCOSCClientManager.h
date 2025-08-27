@@ -26,7 +26,7 @@ public:
 	virtual void Deinitialize() override;
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override
 	{
-		return true;
+		return false;
 		//TODO: custom control
 	}
 	// End UGameInstanceSubsystem Interface

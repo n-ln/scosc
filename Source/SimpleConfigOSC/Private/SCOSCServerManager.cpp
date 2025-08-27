@@ -4,8 +4,8 @@
 #include "SCOSCServerManager.h"
 
 #include "OSCServer.h"
-#include "OSCMessage.h"
 #include "OSCManager.h"
+#include "SCOSCListenerInterface.h"
 
 void USCOSCServerManager::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -146,6 +146,29 @@ void USCOSCServerManager::SetServerEndpoint(FName ServerName, const FString& Add
 void USCOSCServerManager::HandleReceivedMessage(const FOSCMessage& Message, const FString& IPAddress, const int32 Port)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Received OSC Message: %s from %s:%d"), *Message.GetAddress().GetFullPath(), *IPAddress, Port);
+
+	// Get OSC address and data
+	const FString& Address = Message.GetAddress().GetFullPath();
+	const TArray<UE::OSC::FOSCData>& Payload = Message.GetArgumentsChecked();
+	
+	// Test: don't check OSC address, broadcast to all listeners (*)
+	if (const TArray<UObject*>* Listeners = OSCListeners.Find(TEXT("*")))
+	//if (const TArray<UObject*>* Listeners = OSCListeners.Find(Address))
+	{
+		for (UObject* ListenerObject : *Listeners)
+		{
+			if (IsValid(ListenerObject))
+			{
+				// Cast to interface and call OnOSCMessageReceived
+				if (ISCOSCListenerInterface* ListenerInterface = Cast<ISCOSCListenerInterface>(ListenerObject))
+				{
+					ListenerInterface->OnOSCMessageReceived(Payload, Address, EOSCDataType::Float32);
+				}
+			}
+		}
+		UE_LOG(LogTemp, Warning, TEXT("Broadcasted OSC message to listener %d"),
+			Listeners->Num());
+	}
 }
 
 void USCOSCServerManager::ToggleServerMain(bool bEnable)

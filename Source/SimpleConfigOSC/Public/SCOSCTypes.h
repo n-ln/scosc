@@ -47,3 +47,14 @@ struct FSCOSCServerRuntimeStatus
 	bool bIsListening = false;
 };
 
+USTRUCT(BlueprintType)
+struct FSCOSCListenerStatus
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FName> ListeningEndpoints;
+	UPROPERTY()
+	TArray<FName> ListeningAddresses;
+};
+
